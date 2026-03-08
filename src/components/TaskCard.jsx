@@ -75,7 +75,7 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onU
         <div
           {...listeners}
           {...attributes}
-          className="mt-1 text-gray-300 shrink-0 p-1 touch-none cursor-grab active:cursor-grabbing"
+          className="mt-1 text-gray-300 shrink-0 p-1 touch-none cursor-grab active:cursor-grabbing hidden md:block"
         >
           <GripVertical size={14} />
         </div>

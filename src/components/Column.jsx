@@ -11,13 +11,6 @@ const ICON_MAP = {
   PartyPopper,
 };
 
-const COLOR_BAR_MAP = {
-  'bg-yellow-500': 'bg-yellow-400',
-  'bg-purple-500': 'bg-purple-400',
-  'bg-blue-500': 'bg-blue-400',
-  'bg-emerald-500': 'bg-emerald-400',
-};
-
 export default function Column({ column, tasks, onAddTask, onEditTask, onDeleteTask, onMoveTask, onUpdateTask, onDuplicate, onArchive, tags }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
   const emptyState = EMPTY_MESSAGES[column.id];
@@ -25,22 +18,40 @@ export default function Column({ column, tasks, onAddTask, onEditTask, onDeleteT
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-gray-100 rounded-xl overflow-hidden">
-      {/* Color top bar */}
-      <div className={`h-1.5 ${COLOR_BAR_MAP[column.color] || column.color} rounded-t-xl shrink-0`} />
-
-      <div className="flex items-center justify-between px-4 py-3 shrink-0">
-        <div className="flex items-center gap-2">
-          {IconComp && <IconComp size={16} className="text-gray-500" />}
-          <h2 className="font-semibold text-gray-700">{column.title}</h2>
-          <span className="text-xs text-gray-400 bg-gray-200 rounded-full px-2 py-0.5">
-            {tasks.length}
-          </span>
+      {/* Card-style header banner */}
+      <div className={`bg-gradient-to-r ${column.gradient} p-3.5 shrink-0`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            {IconComp && (
+              <div className="p-1.5 bg-white/20 backdrop-blur-sm rounded-lg">
+                <IconComp size={16} className="text-white" />
+              </div>
+            )}
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-bold text-white text-sm">{column.title}</h2>
+                <span className="text-[11px] font-semibold bg-white/25 text-white rounded-full px-2 py-0.5">
+                  {tasks.length}
+                </span>
+              </div>
+              {column.desc && (
+                <p className="text-[11px] text-white/75 mt-0.5">{column.desc}</p>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={() => onAddTask(column.id)}
+            className="p-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg text-white transition-colors"
+            title="タスクを追加"
+          >
+            <Plus size={16} />
+          </button>
         </div>
       </div>
 
       <div
         ref={setNodeRef}
-        className={`flex-1 overflow-y-auto px-3 pb-3 space-y-2 min-h-[120px] transition-colors ${isOver ? 'bg-blue-50' : ''}`}
+        className={`flex-1 overflow-y-auto px-3 pb-3 pt-2 space-y-2 min-h-[120px] transition-colors ${isOver ? 'bg-blue-50' : ''}`}
       >
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.length === 0 && emptyState ? (

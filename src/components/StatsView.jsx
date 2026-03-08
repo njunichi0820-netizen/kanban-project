@@ -47,18 +47,25 @@ export default function StatsView({ tasks = [], tags = [], points, getLevel, get
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-600 p-5 md:p-6 text-white shadow-lg">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-          <div className="relative flex items-center justify-between gap-4">
-            <div>
+          <div className="relative flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <p className="text-indigo-200 text-xs font-semibold tracking-wider uppercase mb-1">Your Level</p>
               <h2 className="text-2xl md:text-3xl font-black tracking-tight">{level.current.name}</h2>
               <p className="text-indigo-200 text-sm mt-1">{safePoints.total} pt 獲得済み</p>
             </div>
-            <div className="text-right">
+            <div className="flex items-center gap-2 shrink-0">
               <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-xl px-3 py-2">
                 <Flame size={16} className="text-orange-300" />
                 <span className="text-lg font-bold">{safePoints.streak}</span>
                 <span className="text-xs text-indigo-200">日連続</span>
               </div>
+              <button
+                onClick={() => setShowRules(v => !v)}
+                className="p-1.5 bg-white/15 backdrop-blur-sm rounded-lg text-white/70 hover:text-white hover:bg-white/25 transition-colors"
+                title="ポイントルール"
+              >
+                <HelpCircle size={16} />
+              </button>
             </div>
           </div>
           {level.next && (
@@ -75,14 +82,6 @@ export default function StatsView({ tasks = [], tags = [], points, getLevel, get
               </div>
             </div>
           )}
-          {/* Help button */}
-          <button
-            onClick={() => setShowRules(v => !v)}
-            className="absolute top-3 right-3 p-1.5 bg-white/15 backdrop-blur-sm rounded-lg text-white/70 hover:text-white hover:bg-white/25 transition-colors z-10"
-            title="ポイントルール"
-          >
-            <HelpCircle size={16} />
-          </button>
         </div>
 
         {/* Point rules */}

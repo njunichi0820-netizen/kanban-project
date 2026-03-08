@@ -4,7 +4,6 @@ import {
   pointerWithin,
   closestCorners,
   PointerSensor,
-  TouchSensor,
   useSensor,
   useSensors,
   DragOverlay,
@@ -54,6 +53,8 @@ class ErrorBoundary extends Component {
   }
 }
 
+const VIEW_MODES = ['board', 'list', 'stats'];
+
 function App() {
   const [tasks, setTasks] = useLocalStorage('kanban-tasks', []);
   const [archivedTasks, setArchivedTasks] = useLocalStorage('kanban-archived', []);
@@ -81,7 +82,7 @@ function App() {
   // Track active column during drag for cross-column DnD fix
   const activeColumnRef = useRef(null);
 
-  // Swipe state
+  // Swipe state — used for both view switching and column switching on mobile
   const touchStart = useRef(null);
   const touchDelta = useRef(0);
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -143,9 +144,9 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [modalOpen, syncPanelOpen, tagManagerOpen, archivePanelOpen, showShortcuts]);
 
+  // Desktop only: PointerSensor (no TouchSensor)
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
   // Custom collision detection: pointerWithin first, fallback to closestCorners
@@ -345,7 +346,7 @@ function App() {
     }
   };
 
-  // Mobile swipe handlers
+  // Mobile swipe — switches views (board/list/stats) at top level
   const handleTouchStart = (e) => {
     if (modalOpen || dragging.current) return;
     touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -373,6 +374,48 @@ function App() {
   };
 
   const handleTouchEnd = () => {
+    if (swiping.current && Math.abs(touchDelta.current) > 60) {
+      const currentIdx = VIEW_MODES.indexOf(viewMode);
+      if (touchDelta.current < 0 && currentIdx < VIEW_MODES.length - 1) {
+        setViewMode(VIEW_MODES[currentIdx + 1]);
+      } else if (touchDelta.current > 0 && currentIdx > 0) {
+        setViewMode(VIEW_MODES[currentIdx - 1]);
+      }
+    }
+    touchStart.current = null;
+    touchDelta.current = 0;
+    swiping.current = false;
+    setSwipeOffset(0);
+  };
+
+  // Board-only column swipe (within board view)
+  const handleBoardTouchStart = (e) => {
+    if (modalOpen) return;
+    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    touchDelta.current = 0;
+    swiping.current = false;
+  };
+
+  const handleBoardTouchMove = (e) => {
+    if (!touchStart.current || modalOpen) return;
+    const dx = e.touches[0].clientX - touchStart.current.x;
+    const dy = e.touches[0].clientY - touchStart.current.y;
+    if (!swiping.current) {
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+        swiping.current = true;
+      } else if (Math.abs(dy) > 10) {
+        touchStart.current = null;
+        return;
+      }
+    }
+    if (swiping.current) {
+      e.preventDefault();
+      touchDelta.current = dx;
+      setSwipeOffset(dx * 0.3);
+    }
+  };
+
+  const handleBoardTouchEnd = () => {
     if (swiping.current && Math.abs(touchDelta.current) > 60) {
       if (touchDelta.current < 0 && activeColumnIndex < COLUMNS.length - 1) {
         setActiveColumnIndex((i) => i + 1);
@@ -531,7 +574,12 @@ function App() {
   if (isMobile) {
     const col = COLUMNS[activeColumnIndex];
     return (
-      <div className="flex flex-col h-dvh bg-slate-50 select-none">
+      <div
+        className="flex flex-col h-dvh bg-slate-50 select-none"
+        onTouchStart={viewMode !== 'board' ? handleTouchStart : undefined}
+        onTouchMove={viewMode !== 'board' ? handleTouchMove : undefined}
+        onTouchEnd={viewMode !== 'board' ? handleTouchEnd : undefined}
+      >
         {/* Header */}
         <header className="px-4 pt-3 pb-2 bg-white shadow-sm shrink-0">
           <div className="flex items-center justify-between">
@@ -573,18 +621,28 @@ function App() {
         </header>
 
         {viewMode === 'stats' ? (
-          <ErrorBoundary>
-            <StatsView tasks={tasks} tags={tags} points={points} getLevel={getLevel} getDailyData={getDailyData} getWeeklyData={getWeeklyData} />
-          </ErrorBoundary>
+          <div
+            className="flex-1 min-h-0"
+            style={{ transform: `translateX(${swipeOffset}px)`, transition: swiping.current ? 'none' : 'transform 0.2s' }}
+          >
+            <ErrorBoundary>
+              <StatsView tasks={tasks} tags={tags} points={points} getLevel={getLevel} getDailyData={getDailyData} getWeeklyData={getWeeklyData} />
+            </ErrorBoundary>
+          </div>
         ) : viewMode === 'list' ? (
-          <ListView
-            tasks={tasks}
-            onEditTask={handleEditTask}
-            onDeleteTask={handleDeleteTask}
-            onMoveTask={handleMoveTask}
-            onDuplicate={handleDuplicate}
-            tags={tags}
-          />
+          <div
+            className="flex-1 min-h-0"
+            style={{ transform: `translateX(${swipeOffset}px)`, transition: swiping.current ? 'none' : 'transform 0.2s' }}
+          >
+            <ListView
+              tasks={tasks}
+              onEditTask={handleEditTask}
+              onDeleteTask={handleDeleteTask}
+              onMoveTask={handleMoveTask}
+              onDuplicate={handleDuplicate}
+              tags={tags}
+            />
+          </div>
         ) : (
           <>
             {/* Board filter */}
@@ -611,9 +669,9 @@ function App() {
 
             <div
               className="flex flex-col flex-1 min-h-0"
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
+              onTouchStart={handleBoardTouchStart}
+              onTouchMove={handleBoardTouchMove}
+              onTouchEnd={handleBoardTouchEnd}
             >
               {/* Bar indicator */}
               <ColumnBarIndicator />
@@ -627,7 +685,7 @@ function App() {
                 </span>
               </div>
 
-              {/* Navigation + Column */}
+              {/* Navigation + Column — no DnD on mobile */}
               <div className="flex items-center flex-1 min-h-0 px-1">
                 <button
                   onClick={() => setActiveColumnIndex((i) => Math.max(0, i - 1))}
@@ -641,33 +699,18 @@ function App() {
                   className="flex-1 h-full min-h-0 transition-transform duration-200"
                   style={{ transform: `translateX(${swipeOffset}px)` }}
                 >
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={collisionDetection}
-                    onDragStart={handleDragStart}
-                    onDragOver={handleDragOver}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <Column
-                      column={col}
-                      tasks={getColumnTasks(col.id)}
-                      onAddTask={handleAddTask}
-                      onEditTask={handleEditTask}
-                      onDeleteTask={handleDeleteTask}
-                      onMoveTask={handleMoveTask}
-                      onUpdateTask={handleUpdateTask}
-                      onDuplicate={handleDuplicate}
-                      onArchive={handleArchive}
-                      tags={tags}
-                    />
-                    <DragOverlay>
-                      {activeTask ? (
-                        <div className="opacity-80">
-                          <TaskCard task={activeTask} columnId={activeTask.column} onEdit={() => {}} onDelete={() => {}} tags={tags} />
-                        </div>
-                      ) : null}
-                    </DragOverlay>
-                  </DndContext>
+                  <Column
+                    column={col}
+                    tasks={getColumnTasks(col.id)}
+                    onAddTask={handleAddTask}
+                    onEditTask={handleEditTask}
+                    onDeleteTask={handleDeleteTask}
+                    onMoveTask={handleMoveTask}
+                    onUpdateTask={handleUpdateTask}
+                    onDuplicate={handleDuplicate}
+                    onArchive={handleArchive}
+                    tags={tags}
+                  />
                 </div>
 
                 <button
