@@ -9,12 +9,14 @@ import {
   DragOverlay,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { ChevronLeft, ChevronRight, Plus, LayoutGrid, List } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, LayoutGrid, List, Cloud, CloudOff } from 'lucide-react';
 import Column from './components/Column';
 import TaskCard from './components/TaskCard';
 import TaskModal from './components/TaskModal';
 import ListView from './components/ListView';
+import SyncPanel from './components/SyncPanel';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { useCloudSync } from './hooks/useCloudSync';
 import { COLUMNS } from './constants';
 
 function App() {
@@ -25,7 +27,10 @@ function App() {
   const [activeColumnIndex, setActiveColumnIndex] = useState(0);
   const [activeTask, setActiveTask] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [viewMode, setViewMode] = useState('board'); // 'board' | 'list'
+  const [viewMode, setViewMode] = useState('board');
+  const [syncPanelOpen, setSyncPanelOpen] = useState(false);
+
+  const sync = useCloudSync(tasks, setTasks);
 
   // Swipe state
   const touchStart = useRef(null);
@@ -171,6 +176,21 @@ function App() {
     setSwipeOffset(0);
   };
 
+  // Sync button
+  const SyncButton = ({ size = 18 }) => (
+    <button
+      onClick={() => setSyncPanelOpen(true)}
+      className={`p-1.5 rounded-lg transition-colors ${
+        sync.syncId
+          ? 'text-blue-500 hover:bg-blue-50'
+          : 'text-gray-400 hover:bg-gray-100'
+      } ${sync.syncing ? 'animate-pulse' : ''}`}
+      aria-label="同期設定"
+    >
+      {sync.syncId ? <Cloud size={size} /> : <CloudOff size={size} />}
+    </button>
+  );
+
   // Tab buttons component
   const ViewTabs = ({ className = '' }) => (
     <div className={`flex bg-gray-200 rounded-lg p-0.5 ${className}`}>
@@ -205,6 +225,7 @@ function App() {
           <div className="flex items-center gap-2">
             <LayoutGrid size={20} className="text-blue-500" />
             <h1 className="text-lg font-bold text-gray-800">Kanban</h1>
+            <SyncButton size={18} />
           </div>
           <div className="flex items-center gap-2">
             <ViewTabs />
@@ -308,6 +329,9 @@ function App() {
           onSave={handleSaveTask}
           onClose={() => { setModalOpen(false); setEditingTask(null); }}
         />
+        {syncPanelOpen && (
+          <SyncPanel sync={sync} onClose={() => setSyncPanelOpen(false)} />
+        )}
       </div>
     );
   }
@@ -322,13 +346,16 @@ function App() {
           <h1 className="text-xl font-bold text-gray-800">Kanban Board</h1>
           <ViewTabs className="ml-4" />
         </div>
-        <button
-          onClick={() => handleAddTask('idea')}
-          className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-600"
-        >
-          <Plus size={16} />
-          タスク追加
-        </button>
+        <div className="flex items-center gap-3">
+          <SyncButton size={20} />
+          <button
+            onClick={() => handleAddTask('idea')}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+          >
+            <Plus size={16} />
+            タスク追加
+          </button>
+        </div>
       </header>
 
       {viewMode === 'list' ? (
@@ -378,6 +405,9 @@ function App() {
         onSave={handleSaveTask}
         onClose={() => { setModalOpen(false); setEditingTask(null); }}
       />
+      {syncPanelOpen && (
+        <SyncPanel sync={sync} onClose={() => setSyncPanelOpen(false)} />
+      )}
     </div>
   );
 }

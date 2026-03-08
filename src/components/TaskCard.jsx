@@ -59,7 +59,7 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove }) {
           )}
         </div>
 
-        <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity sm:opacity-100 sm:group-hover:opacity-100">
+        <div className="flex gap-1 shrink-0">
           <button
             onClick={() => onEdit(task)}
             className="p-1 text-gray-400 hover:text-blue-500"
