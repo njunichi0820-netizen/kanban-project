@@ -2,26 +2,24 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 
 const GITHUB_API = 'https://api.github.com';
 
-export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks) {
+export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, points, setPoints) {
   const [gistId, setGistId] = useState(() => localStorage.getItem('kanban-gist-id') || '');
   const [token, setToken] = useState(() => localStorage.getItem('kanban-gh-token') || '');
   const [syncing, setSyncing] = useState(false);
   const [lastSynced, setLastSynced] = useState(null);
   const [error, setError] = useState(null);
   const debounceTimer = useRef(null);
-  // Use a timestamp to suppress auto-upload after download
   const suppressUntil = useRef(0);
   const initialFetchDone = useRef(false);
 
   const isConfigured = !!(gistId && token);
 
-  // Save to localStorage
   useEffect(() => {
     if (gistId) localStorage.setItem('kanban-gist-id', gistId);
     if (token) localStorage.setItem('kanban-gh-token', token);
   }, [gistId, token]);
 
-  // Download tasks from Gist
+  // Download from Gist
   const downloadTasks = useCallback(async (gId, tk) => {
     const useGistId = gId || gistId;
     const useToken = tk || token;
@@ -40,11 +38,13 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks) {
       if (!file) throw new Error('kanban-data.json が見つかりません');
       const data = JSON.parse(file.content);
       if (data?.tasks && Array.isArray(data.tasks)) {
-        // Suppress auto-upload for 5 seconds after download
         suppressUntil.current = Date.now() + 5000;
         setTasks(data.tasks);
         if (data.archivedTasks && Array.isArray(data.archivedTasks) && setArchivedTasks) {
           setArchivedTasks(data.archivedTasks);
+        }
+        if (data.points && setPoints) {
+          setPoints(data.points);
         }
         setLastSynced(new Date());
         return true;
@@ -56,16 +56,17 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks) {
     } finally {
       setSyncing(false);
     }
-  }, [gistId, token, setTasks, setArchivedTasks]);
+  }, [gistId, token, setTasks, setArchivedTasks, setPoints]);
 
-  // Upload tasks to Gist
-  const uploadTasks = useCallback(async (data, archived) => {
+  // Upload to Gist
+  const uploadTasks = useCallback(async (data, archived, pts) => {
     if (!isConfigured) return;
     setSyncing(true);
     setError(null);
     try {
       const payload = { tasks: data, updatedAt: Date.now() };
       if (archived) payload.archivedTasks = archived;
+      if (pts) payload.points = pts;
       const res = await fetch(`${GITHUB_API}/gists/${gistId}`, {
         method: 'PATCH',
         headers: {
@@ -91,7 +92,7 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks) {
     }
   }, [gistId, token, isConfigured]);
 
-  // AUTO-FETCH on app load when sync is configured
+  // AUTO-FETCH on app load
   useEffect(() => {
     if (isConfigured && !initialFetchDone.current) {
       initialFetchDone.current = true;
@@ -99,20 +100,16 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks) {
     }
   }, [isConfigured, downloadTasks]);
 
-  // Auto-upload when tasks change (debounced)
-  // BUT skip if we just downloaded (suppress window)
+  // Auto-upload when data changes (debounced)
   useEffect(() => {
     if (!isConfigured) return;
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {
-      // Check if we're still in the suppression window
-      if (Date.now() < suppressUntil.current) {
-        return;
-      }
-      uploadTasks(tasks, archivedTasks);
+      if (Date.now() < suppressUntil.current) return;
+      uploadTasks(tasks, archivedTasks, points);
     }, 3000);
     return () => clearTimeout(debounceTimer.current);
-  }, [tasks, archivedTasks, isConfigured, uploadTasks]);
+  }, [tasks, archivedTasks, points, isConfigured, uploadTasks]);
 
   // Create new Gist
   const createGist = useCallback(async (ghToken) => {
@@ -121,6 +118,7 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks) {
     try {
       const payload = { tasks, updatedAt: Date.now() };
       if (archivedTasks) payload.archivedTasks = archivedTasks;
+      if (points) payload.points = points;
       const res = await fetch(`${GITHUB_API}/gists`, {
         method: 'POST',
         headers: {
@@ -152,9 +150,9 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks) {
     } finally {
       setSyncing(false);
     }
-  }, [tasks, archivedTasks]);
+  }, [tasks, archivedTasks, points]);
 
-  // Setup with existing Gist + immediately download
+  // Setup with existing Gist
   const setupSync = useCallback(async (ghToken, existingGistId) => {
     setToken(ghToken);
     setGistId(existingGistId);
@@ -162,14 +160,15 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks) {
     await downloadTasks(existingGistId, ghToken);
   }, [downloadTasks]);
 
-  // Export tasks as JSON string
+  // Export
   const exportData = useCallback(() => {
     const payload = { tasks, exportedAt: Date.now() };
     if (archivedTasks) payload.archivedTasks = archivedTasks;
+    if (points) payload.points = points;
     return JSON.stringify(payload, null, 2);
-  }, [tasks, archivedTasks]);
+  }, [tasks, archivedTasks, points]);
 
-  // Import tasks from JSON string
+  // Import
   const importData = useCallback((jsonStr) => {
     try {
       const data = JSON.parse(jsonStr);
@@ -179,13 +178,16 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks) {
         if (data.archivedTasks && Array.isArray(data.archivedTasks) && setArchivedTasks) {
           setArchivedTasks(data.archivedTasks);
         }
+        if (data.points && setPoints) {
+          setPoints(data.points);
+        }
         return true;
       }
       return false;
     } catch {
       return false;
     }
-  }, [setTasks, setArchivedTasks]);
+  }, [setTasks, setArchivedTasks, setPoints]);
 
   return {
     gistId,
@@ -197,7 +199,7 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks) {
     createGist,
     setupSync,
     syncNow: () => downloadTasks(),
-    pushNow: () => uploadTasks(tasks, archivedTasks),
+    pushNow: () => uploadTasks(tasks, archivedTasks, points),
     exportData,
     importData,
     clearSync: () => {

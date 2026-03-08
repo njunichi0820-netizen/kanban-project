@@ -110,6 +110,7 @@ export function useKarma() {
 
   return {
     points,
+    setPoints,
     addPoints,
     onTaskComplete,
     onSubtaskComplete,
