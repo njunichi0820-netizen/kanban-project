@@ -6,7 +6,7 @@ import { PRIORITY_COLORS, COLUMNS } from '../constants';
 
 export default function TaskCard({ task, columnId, onEdit, onDelete, onMove }) {
   const isDone = columnId === 'done';
-  const [showMoveButtons, setShowMoveButtons] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const {
     attributes,
     listeners,
@@ -23,7 +23,7 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove }) {
 
   const handleCardClick = (e) => {
     if (e.target.closest('button')) return;
-    setShowMoveButtons((v) => !v);
+    setExpanded((v) => !v);
   };
 
   return (
@@ -31,14 +31,15 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove }) {
       ref={setNodeRef}
       style={style}
       className={`
-        group relative bg-white rounded-lg shadow-sm border-l-4
+        relative bg-white rounded-xl border-l-4 transition-all duration-200
         ${PRIORITY_COLORS[task.priority]}
-        ${isDragging ? 'opacity-50 shadow-lg z-50' : ''}
-        ${isDone ? 'opacity-60' : ''}
+        ${isDragging ? 'opacity-50 shadow-xl z-50' : 'shadow-sm'}
+        ${isDone ? 'opacity-50' : ''}
+        ${expanded ? 'shadow-lg scale-[1.02] ring-1 ring-black/5' : ''}
       `}
       onClick={handleCardClick}
     >
-      <div className="flex items-start gap-1 p-3">
+      <div className="flex items-start gap-1.5 p-3">
         <button
           {...attributes}
           {...listeners}
@@ -49,27 +50,27 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove }) {
         </button>
 
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-medium text-gray-800 break-words ${isDone ? 'line-through text-gray-400' : ''}`}>
+          <p className={`text-sm font-semibold break-words ${isDone ? 'line-through text-gray-400' : 'text-gray-800'}`}>
             {task.title}
           </p>
           {task.description && (
-            <p className={`mt-1 text-xs text-gray-500 break-words ${isDone ? 'line-through' : ''}`}>
+            <p className={`mt-1 text-xs break-words ${isDone ? 'line-through text-gray-300' : 'text-gray-500'}`}>
               {task.description}
             </p>
           )}
         </div>
 
-        <div className="flex gap-1 shrink-0">
+        <div className="flex gap-0.5 shrink-0">
           <button
             onClick={() => onEdit(task)}
-            className="p-1 text-gray-400 hover:text-blue-500"
+            className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
             aria-label="編集"
           >
             <Pencil size={14} />
           </button>
           <button
             onClick={() => onDelete(task.id)}
-            className="p-1 text-gray-400 hover:text-red-500"
+            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
             aria-label="削除"
           >
             <Trash2 size={14} />
@@ -77,29 +78,32 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove }) {
         </div>
       </div>
 
-      {/* Move buttons */}
-      {showMoveButtons && onMove && (
-        <div className="flex items-center justify-between px-2 pb-2 gap-1">
-          {COLUMNS.map((col) => (
-            <button
-              key={col.id}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (col.id !== columnId) {
-                  onMove(task.id, col.id);
-                  setShowMoveButtons(false);
-                }
-              }}
-              disabled={col.id === columnId}
-              className={`flex-1 text-xs py-1.5 rounded-md font-medium transition-colors ${
-                col.id === columnId
-                  ? 'bg-gray-200 text-gray-400 cursor-default'
-                  : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600 active:bg-blue-200'
-              }`}
-            >
-              {col.title}
-            </button>
-          ))}
+      {/* Move buttons with column colors */}
+      {expanded && onMove && (
+        <div className="flex gap-1.5 px-3 pb-3">
+          {COLUMNS.map((col) => {
+            const isCurrent = col.id === columnId;
+            return (
+              <button
+                key={col.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isCurrent) {
+                    onMove(task.id, col.id);
+                    setExpanded(false);
+                  }
+                }}
+                disabled={isCurrent}
+                className={`flex-1 text-xs py-2 rounded-lg font-bold tracking-wide transition-all ${
+                  isCurrent
+                    ? `${col.lightBg} ${col.lightText} ring-2 ring-current cursor-default`
+                    : `${col.btnBg} text-white ${col.btnHover} active:scale-95 shadow-sm`
+                }`}
+              >
+                {col.title}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

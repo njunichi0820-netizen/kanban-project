@@ -1,8 +1,8 @@
 export const COLUMNS = [
-  { id: 'idea', title: 'Idea', color: 'bg-purple-500' },
-  { id: 'todo', title: 'ToDo', color: 'bg-blue-500' },
-  { id: 'doing', title: 'Doing', color: 'bg-yellow-500' },
-  { id: 'done', title: 'Done', color: 'bg-green-500' },
+  { id: 'idea', title: 'Idea', color: 'bg-purple-500', lightBg: 'bg-purple-100', lightText: 'text-purple-700', btnBg: 'bg-purple-500', btnHover: 'hover:bg-purple-600' },
+  { id: 'todo', title: 'ToDo', color: 'bg-blue-500', lightBg: 'bg-blue-100', lightText: 'text-blue-700', btnBg: 'bg-blue-500', btnHover: 'hover:bg-blue-600' },
+  { id: 'doing', title: 'Doing', color: 'bg-yellow-500', lightBg: 'bg-yellow-100', lightText: 'text-yellow-700', btnBg: 'bg-yellow-500', btnHover: 'hover:bg-yellow-600' },
+  { id: 'done', title: 'Done', color: 'bg-green-500', lightBg: 'bg-green-100', lightText: 'text-green-700', btnBg: 'bg-green-500', btnHover: 'hover:bg-green-600' },
 ];
 
 export const PRIORITIES = [

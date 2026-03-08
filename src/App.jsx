@@ -9,7 +9,7 @@ import {
   DragOverlay,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { ChevronLeft, ChevronRight, Plus, LayoutGrid, List, Cloud, CloudOff } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, LayoutGrid, List, Cloud, CloudOff, Kanban } from 'lucide-react';
 import Column from './components/Column';
 import TaskCard from './components/TaskCard';
 import TaskModal from './components/TaskModal';
@@ -98,11 +98,9 @@ function App() {
   const handleDragOver = (event) => {
     const { active, over } = event;
     if (!over) return;
-
     const activeData = active.data.current;
     const overColumnId = over.data.current?.columnId || over.id;
     const activeColumnId = activeData?.columnId;
-
     if (activeColumnId && overColumnId && activeColumnId !== overColumnId) {
       setTasks((prev) =>
         prev.map((t) => (t.id === active.id ? { ...t, column: overColumnId } : t))
@@ -115,12 +113,9 @@ function App() {
     setActiveTask(null);
     const { active, over } = event;
     if (!over) return;
-
     const activeColumnId = active.data.current?.columnId;
     const overColumnId = over.data.current?.columnId || over.id;
-
     if (!activeColumnId || !overColumnId) return;
-
     if (active.id !== over.id && activeColumnId === overColumnId) {
       setTasks((prev) => {
         const columnTasks = prev.filter((t) => t.column === overColumnId);
@@ -145,7 +140,6 @@ function App() {
     if (!touchStart.current || modalOpen || dragging.current) return;
     const dx = e.touches[0].clientX - touchStart.current.x;
     const dy = e.touches[0].clientY - touchStart.current.y;
-
     if (!swiping.current) {
       if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
         swiping.current = true;
@@ -154,7 +148,6 @@ function App() {
         return;
       }
     }
-
     if (swiping.current) {
       e.preventDefault();
       touchDelta.current = dx;
@@ -176,13 +169,36 @@ function App() {
     setSwipeOffset(0);
   };
 
+  // Logo component
+  const Logo = ({ size = 'md' }) => (
+    <div className="flex items-center gap-2.5">
+      <div className={`flex items-center justify-center rounded-xl bg-indigo-600 text-white ${
+        size === 'sm' ? 'w-8 h-8' : 'w-10 h-10'
+      }`}>
+        <Kanban size={size === 'sm' ? 18 : 22} />
+      </div>
+      <div>
+        <h1 className={`font-black tracking-tight text-gray-900 leading-none ${
+          size === 'sm' ? 'text-base' : 'text-xl'
+        }`}>
+          My Kanban
+        </h1>
+        <p className={`font-semibold tracking-widest text-indigo-500 uppercase leading-none ${
+          size === 'sm' ? 'text-[9px] mt-0.5' : 'text-[10px] mt-0.5'
+        }`}>
+          Personal Workspace
+        </p>
+      </div>
+    </div>
+  );
+
   // Sync button
   const SyncButton = ({ size = 18 }) => (
     <button
       onClick={() => setSyncPanelOpen(true)}
-      className={`p-1.5 rounded-lg transition-colors ${
+      className={`p-2 rounded-lg transition-colors ${
         sync.syncId
-          ? 'text-blue-500 hover:bg-blue-50'
+          ? 'text-indigo-500 hover:bg-indigo-50'
           : 'text-gray-400 hover:bg-gray-100'
       } ${sync.syncing ? 'animate-pulse' : ''}`}
       aria-label="同期設定"
@@ -191,13 +207,15 @@ function App() {
     </button>
   );
 
-  // Tab buttons component
+  // Tab buttons
   const ViewTabs = ({ className = '' }) => (
-    <div className={`flex bg-gray-200 rounded-lg p-0.5 ${className}`}>
+    <div className={`flex bg-gray-100 rounded-xl p-1 ${className}`}>
       <button
         onClick={() => setViewMode('board')}
-        className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-          viewMode === 'board' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+        className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold tracking-wide rounded-lg transition-all ${
+          viewMode === 'board'
+            ? 'bg-white text-indigo-600 shadow-sm'
+            : 'text-gray-400 hover:text-gray-600'
         }`}
       >
         <LayoutGrid size={14} />
@@ -205,8 +223,10 @@ function App() {
       </button>
       <button
         onClick={() => setViewMode('list')}
-        className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-          viewMode === 'list' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+        className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold tracking-wide rounded-lg transition-all ${
+          viewMode === 'list'
+            ? 'bg-white text-indigo-600 shadow-sm'
+            : 'text-gray-400 hover:text-gray-600'
         }`}
       >
         <List size={14} />
@@ -215,27 +235,47 @@ function App() {
     </div>
   );
 
+  // Bar indicator for mobile columns
+  const ColumnBarIndicator = () => (
+    <div className="flex items-center gap-1.5 px-6 py-2 shrink-0">
+      {COLUMNS.map((c, i) => (
+        <button
+          key={c.id}
+          onClick={() => setActiveColumnIndex(i)}
+          className={`h-1 rounded-full transition-all duration-300 ${
+            i === activeColumnIndex
+              ? `flex-[2] ${c.color}`
+              : 'flex-1 bg-gray-300'
+          }`}
+          aria-label={c.title}
+        />
+      ))}
+    </div>
+  );
+
   // Mobile view
   if (isMobile) {
     const col = COLUMNS[activeColumnIndex];
     return (
-      <div className="flex flex-col h-dvh bg-slate-100 select-none">
+      <div className="flex flex-col h-dvh bg-slate-50 select-none">
         {/* Header */}
-        <header className="flex items-center justify-between px-4 py-3 bg-white shadow-sm shrink-0">
-          <div className="flex items-center gap-2">
-            <LayoutGrid size={20} className="text-blue-500" />
-            <h1 className="text-lg font-bold text-gray-800">Kanban</h1>
-            <SyncButton size={18} />
+        <header className="px-4 pt-3 pb-2 bg-white shadow-sm shrink-0">
+          <div className="flex items-center justify-between">
+            <Logo size="sm" />
+            <div className="flex items-center gap-1">
+              <SyncButton size={18} />
+              <button
+                onClick={() => handleAddTask(viewMode === 'board' ? col.id : 'idea')}
+                className="p-2 text-white bg-indigo-600 rounded-xl hover:bg-indigo-700"
+                aria-label="タスク追加"
+              >
+                <Plus size={20} />
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          {/* Tabs under header */}
+          <div className="mt-2">
             <ViewTabs />
-            <button
-              onClick={() => handleAddTask(viewMode === 'board' ? col.id : 'idea')}
-              className="p-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
-              aria-label="タスク追加"
-            >
-              <Plus size={20} />
-            </button>
           </div>
         </header>
 
@@ -253,18 +293,16 @@ function App() {
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            {/* Column dots indicator */}
-            <div className="flex items-center justify-center gap-2 py-2 shrink-0">
-              {COLUMNS.map((c, i) => (
-                <button
-                  key={c.id}
-                  onClick={() => setActiveColumnIndex(i)}
-                  className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                    i === activeColumnIndex ? c.color : 'bg-gray-300'
-                  }`}
-                  aria-label={c.title}
-                />
-              ))}
+            {/* Bar indicator */}
+            <ColumnBarIndicator />
+
+            {/* Column title with count */}
+            <div className="flex items-center justify-center gap-2 pb-1 shrink-0">
+              <div className={`w-2.5 h-2.5 rounded-full ${col.color}`} />
+              <span className="text-sm font-bold tracking-wide text-gray-700">{col.title}</span>
+              <span className="text-xs text-gray-400 bg-gray-200 rounded-full px-2 py-0.5 font-semibold">
+                {getColumnTasks(col.id).length}
+              </span>
             </div>
 
             {/* Navigation + Column */}
@@ -314,11 +352,6 @@ function App() {
                 <ChevronRight size={24} />
               </button>
             </div>
-
-            {/* Column name */}
-            <div className="text-center py-2 text-sm font-medium text-gray-500 shrink-0">
-              {col.title}
-            </div>
           </div>
         )}
 
@@ -340,17 +373,16 @@ function App() {
   return (
     <div className="flex flex-col h-dvh bg-slate-100">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 bg-white shadow-sm shrink-0">
-        <div className="flex items-center gap-3">
-          <LayoutGrid size={24} className="text-blue-500" />
-          <h1 className="text-xl font-bold text-gray-800">Kanban Board</h1>
-          <ViewTabs className="ml-4" />
+      <header className="flex items-center justify-between px-6 py-3 bg-white shadow-sm shrink-0">
+        <div className="flex items-center gap-6">
+          <Logo />
+          <ViewTabs />
         </div>
         <div className="flex items-center gap-3">
           <SyncButton size={20} />
           <button
             onClick={() => handleAddTask('idea')}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-colors"
           >
             <Plus size={16} />
             タスク追加

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-const API_BASE = 'https://api.npoint.io';
+const API_BASE = 'https://jsonblob.com/api/jsonBlob';
 
 export function useCloudSync(tasks, setTasks) {
   const [syncId, setSyncId] = useState(() => localStorage.getItem('kanban-sync-id') || '');
@@ -10,7 +10,6 @@ export function useCloudSync(tasks, setTasks) {
   const debounceTimer = useRef(null);
   const skipNextAutoSync = useRef(false);
 
-  // Save sync ID to localStorage
   useEffect(() => {
     if (syncId) {
       localStorage.setItem('kanban-sync-id', syncId);
@@ -24,7 +23,7 @@ export function useCloudSync(tasks, setTasks) {
     setError(null);
     try {
       const res = await fetch(`${API_BASE}/${syncId}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tasks: data, updatedAt: Date.now() }),
       });
@@ -72,7 +71,7 @@ export function useCloudSync(tasks, setTasks) {
     return () => clearTimeout(debounceTimer.current);
   }, [tasks, syncId, uploadTasks]);
 
-  // Create new sync bin on npoint.io
+  // Create new sync blob
   const createSync = useCallback(async () => {
     setSyncing(true);
     setError(null);
@@ -83,12 +82,13 @@ export function useCloudSync(tasks, setTasks) {
         body: JSON.stringify({ tasks, updatedAt: Date.now() }),
       });
       if (!res.ok) throw new Error(`作成失敗: ${res.status}`);
-      const data = await res.json();
-      // npoint returns the full URL, extract the ID
-      const id = data.id || new URL(data.url || data).pathname.split('/').pop();
-      setSyncId(id);
+      // jsonblob returns ID in x-jsonblob-id header and location header
+      const blobId = res.headers.get('x-jsonblob-id')
+        || res.headers.get('location')?.split('/').pop();
+      if (!blobId) throw new Error('IDの取得に失敗しました');
+      setSyncId(blobId);
       setLastSynced(new Date());
-      return id;
+      return blobId;
     } catch (e) {
       setError(e.message);
       return null;
@@ -101,7 +101,6 @@ export function useCloudSync(tasks, setTasks) {
   const joinSync = useCallback((id) => {
     const cleanId = id.trim().split('/').pop();
     setSyncId(cleanId);
-    // Auto-download after joining
     setTimeout(() => {
       setSyncing(true);
       fetch(`${API_BASE}/${cleanId}`)

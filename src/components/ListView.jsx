@@ -209,10 +209,10 @@ function ListRow({ task, colMap, priMap, onEdit, onDelete, onMove }) {
                 }
               }}
               disabled={c.id === task.column}
-              className={`flex-1 text-xs py-1.5 rounded-md font-medium transition-colors ${
+              className={`flex-1 text-xs py-2 rounded-lg font-bold tracking-wide transition-all ${
                 c.id === task.column
-                  ? 'bg-gray-200 text-gray-400 cursor-default'
-                  : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600 active:bg-blue-200'
+                  ? `${c.lightBg} ${c.lightText} ring-2 ring-current cursor-default`
+                  : `${c.btnBg} text-white ${c.btnHover} active:scale-95 shadow-sm`
               }`}
             >
               {c.title}
