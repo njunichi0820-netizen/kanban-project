@@ -47,7 +47,7 @@ function App() {
   const searchInputRef = useRef(null);
 
   const sync = useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks);
-  const { karma, onTaskComplete, onSubtaskComplete, getLevel, getDailyData, getWeeklyData } = useKarma();
+  const { points, onTaskComplete, onSubtaskComplete, getLevel, getDailyData, getWeeklyData } = useKarma();
 
   // Track active column during drag for cross-column DnD fix
   const activeColumnRef = useRef(null);
@@ -99,6 +99,15 @@ function App() {
       } else if (e.key === '?') {
         e.preventDefault();
         setShowShortcuts((v) => !v);
+      } else if (e.key === '1') {
+        setViewMode('board');
+      } else if (e.key === '2') {
+        setViewMode('list');
+      } else if (e.key === '3') {
+        setViewMode('stats');
+      } else if (e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        setArchivePanelOpen((v) => !v);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -449,10 +458,14 @@ function App() {
         <h2 className="text-base font-bold text-gray-800 mb-4">キーボードショートカット</h2>
         <div className="space-y-2">
           {[
-            ['N', '新規タスク'],
-            ['/', '検索フォーカス'],
-            ['Esc', 'モーダルを閉じる'],
-            ['?', 'このヘルプを表示'],
+            ['N', '新規タスク作成'],
+            ['/', '検索にフォーカス'],
+            ['1', 'ボード表示'],
+            ['2', 'リスト表示'],
+            ['3', '統計表示'],
+            ['A', 'アーカイブを開く'],
+            ['Esc', 'パネル / モーダルを閉じる'],
+            ['?', 'ショートカット一覧'],
           ].map(([key, desc]) => (
             <div key={key} className="flex items-center gap-3">
               <kbd className="px-2 py-1 text-xs font-mono bg-gray-100 rounded-lg border text-gray-600 min-w-[32px] text-center">
@@ -517,10 +530,10 @@ function App() {
         </header>
 
         {viewMode === 'stats' ? (
-          <StatsView tasks={tasks} tags={tags} karma={karma} getLevel={getLevel} getDailyData={getDailyData} getWeeklyData={getWeeklyData} />
+          <StatsView tasks={tasks} tags={tags} points={points} getLevel={getLevel} getDailyData={getDailyData} getWeeklyData={getWeeklyData} />
         ) : viewMode === 'list' ? (
           <ListView
-            tasks={filteredTasks}
+            tasks={tasks}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteTask}
             onMoveTask={handleMoveTask}
@@ -711,7 +724,7 @@ function App() {
       ) : viewMode === 'list' ? (
         <div className="flex-1 min-h-0 bg-white mx-4 my-4 rounded-xl shadow-sm overflow-hidden">
           <ListView
-            tasks={filteredTasks}
+            tasks={tasks}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteTask}
             onMoveTask={handleMoveTask}

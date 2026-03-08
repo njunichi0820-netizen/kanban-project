@@ -99,7 +99,11 @@ export default function ListView({ tasks, onEditTask, onDeleteTask, onMoveTask, 
       {/* Task list */}
       <div className="flex-1 overflow-y-auto">
         {sorted.length === 0 && (
-          <div className="text-center text-gray-400 text-sm py-12">タスクがありません</div>
+          <div className="flex items-center justify-center py-16">
+            <div className="border-2 border-dashed border-gray-200 rounded-2xl px-8 py-6 text-center">
+              <p className="text-sm text-gray-300 font-medium">タスクがありません</p>
+            </div>
+          </div>
         )}
         {sorted.map((task) => (
           <ListRow

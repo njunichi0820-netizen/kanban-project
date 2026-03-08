@@ -25,20 +25,19 @@ function getWeekKey(dateStr) {
 }
 
 export function useKarma() {
-  const [karma, setKarma] = useLocalStorage('kanban-karma', {
+  const [points, setPoints] = useLocalStorage('kanban-karma', {
     total: 0,
     daily: {},
     lastActiveDate: null,
     streak: 0,
   });
 
-  const addPoints = useCallback((points) => {
-    setKarma((prev) => {
+  const addPoints = useCallback((pts) => {
+    setPoints((prev) => {
       const key = todayKey();
       const daily = { ...prev.daily };
-      daily[key] = (daily[key] || 0) + points;
+      daily[key] = (daily[key] || 0) + pts;
 
-      // Calculate streak
       let streak = prev.streak;
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
@@ -53,19 +52,19 @@ export function useKarma() {
       }
 
       return {
-        total: prev.total + points,
+        total: prev.total + pts,
         daily,
         lastActiveDate: key,
         streak,
       };
     });
-  }, [setKarma]);
+  }, [setPoints]);
 
   const onTaskComplete = useCallback(() => addPoints(10), [addPoints]);
   const onSubtaskComplete = useCallback(() => addPoints(3), [addPoints]);
 
   const getLevel = useCallback(() => {
-    const total = karma.total;
+    const total = points.total;
     let current = LEVELS[0];
     let next = LEVELS[1] || null;
     for (let i = LEVELS.length - 1; i >= 0; i--) {
@@ -77,24 +76,22 @@ export function useKarma() {
     }
     const progress = next ? (total - current.min) / (next.min - current.min) : 1;
     return { current, next, progress };
-  }, [karma.total]);
+  }, [points.total]);
 
-  // Get daily data for last N days
   const getDailyData = useCallback((days = 14) => {
     const result = [];
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      result.push({ date: key, label: `${d.getMonth() + 1}/${d.getDate()}`, points: karma.daily[key] || 0 });
+      result.push({ date: key, label: `${d.getMonth() + 1}/${d.getDate()}`, points: points.daily[key] || 0 });
     }
     return result;
-  }, [karma.daily]);
+  }, [points.daily]);
 
-  // Get weekly data for last N weeks
   const getWeeklyData = useCallback((weeks = 8) => {
     const weekMap = {};
-    Object.entries(karma.daily).forEach(([dateStr, pts]) => {
+    Object.entries(points.daily).forEach(([dateStr, pts]) => {
       const wk = getWeekKey(dateStr);
       weekMap[wk] = (weekMap[wk] || 0) + pts;
     });
@@ -109,10 +106,10 @@ export function useKarma() {
       }
     }
     return result;
-  }, [karma.daily]);
+  }, [points.daily]);
 
   return {
-    karma,
+    points,
     addPoints,
     onTaskComplete,
     onSubtaskComplete,
