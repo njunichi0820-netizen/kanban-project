@@ -62,10 +62,9 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onU
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
       className={`
-        relative bg-white rounded-2xl transition-all duration-200 w-full overflow-hidden touch-none
+        relative rounded-2xl transition-all duration-200 w-full overflow-hidden
+        ${task.priority ? 'border-l-4 border-orange-400 bg-orange-50/50' : 'bg-white'}
         ${isDragging ? 'opacity-50 shadow-xl z-50' : 'shadow-sm hover:shadow-md'}
         ${isDone ? 'opacity-50' : ''}
         ${expanded ? 'shadow-lg ring-1 ring-black/5' : ''}
@@ -73,7 +72,11 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onU
       onClick={handleCardClick}
     >
       <div className="flex items-start gap-2 p-3">
-        <div className="mt-1 text-gray-300 shrink-0">
+        <div
+          {...listeners}
+          {...attributes}
+          className="mt-1 text-gray-300 shrink-0 p-1 touch-none cursor-grab active:cursor-grabbing"
+        >
           <GripVertical size={14} />
         </div>
 
@@ -114,36 +117,12 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onU
           </div>
         </div>
 
-        <div className="flex gap-0.5 shrink-0">
-          {onDuplicate && (
-            <button
-              onClick={() => onDuplicate(task)}
-              className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-              title="複製"
-            >
-              <Copy size={13} />
-            </button>
-          )}
-          {onArchive && (
-            <button
-              onClick={() => onArchive(task.id)}
-              className="p-1.5 text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
-              title="アーカイブ"
-            >
-              <Archive size={13} />
-            </button>
-          )}
+        <div className="shrink-0">
           <button
             onClick={() => onEdit(task)}
-            className="p-1.5 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors"
+            className="p-2 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors"
           >
-            <Pencil size={13} />
-          </button>
-          <button
-            onClick={() => onDelete(task.id)}
-            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-          >
-            <Trash2 size={13} />
+            <Pencil size={16} />
           </button>
         </div>
       </div>
@@ -247,6 +226,35 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onU
               })}
             </div>
           )}
+
+          {/* Action bar: duplicate, archive, delete */}
+          <div className="flex items-center gap-1 pt-1 border-t border-gray-100">
+            {onDuplicate && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onDuplicate(task); }}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <Copy size={12} />
+                複製
+              </button>
+            )}
+            {onArchive && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onArchive(task.id); }}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
+              >
+                <Archive size={12} />
+                アーカイブ
+              </button>
+            )}
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
+              className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <Trash2 size={12} />
+              削除
+            </button>
+          </div>
         </div>
       )}
     </div>

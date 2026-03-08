@@ -13,6 +13,7 @@ export const EMPTY_MESSAGES = {
 };
 
 export const POINT_RULES = [
+  { action: 'タスク追加', points: '+1 pt', description: 'アイデアやタスクを新規作成' },
   { action: 'タスク完了', points: '+10 pt', description: 'タスクを完了カラムに移動' },
   { action: 'サブタスク完了', points: '+3 pt', description: 'サブタスクをチェック' },
 ];

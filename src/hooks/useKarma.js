@@ -60,6 +60,7 @@ export function useKarma() {
     });
   }, [setPoints]);
 
+  const onTaskCreate = useCallback(() => addPoints(1), [addPoints]);
   const onTaskComplete = useCallback(() => addPoints(10), [addPoints]);
   const onSubtaskComplete = useCallback(() => addPoints(3), [addPoints]);
 
@@ -112,6 +113,7 @@ export function useKarma() {
     points,
     setPoints,
     addPoints,
+    onTaskCreate,
     onTaskComplete,
     onSubtaskComplete,
     getLevel,

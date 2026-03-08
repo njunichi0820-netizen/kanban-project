@@ -75,7 +75,7 @@ function App() {
   const [selectedTags, setSelectedTags] = useState([]);
   const searchInputRef = useRef(null);
 
-  const { points, setPoints, onTaskComplete, onSubtaskComplete, getLevel, getDailyData, getWeeklyData } = useKarma();
+  const { points, setPoints, onTaskCreate, onTaskComplete, onSubtaskComplete, getLevel, getDailyData, getWeeklyData } = useKarma();
   const sync = useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, points, setPoints);
 
   // Track active column during drag for cross-column DnD fix
@@ -218,6 +218,7 @@ function App() {
       if (exists) {
         return prev.map((t) => (t.id === task.id ? task : t));
       }
+      onTaskCreate();
       return [...prev, task];
     });
     setModalOpen(false);
