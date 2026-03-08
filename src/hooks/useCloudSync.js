@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-const API_BASE = 'https://jsonblob.com/api/jsonBlob';
+// jsonbin-zeta.vercel.app: free, no signup, CORS OK, ID in response body
+const API_BASE = 'https://jsonbin-zeta.vercel.app/api/bins';
 
 export function useCloudSync(tasks, setTasks) {
   const [syncId, setSyncId] = useState(() => localStorage.getItem('kanban-sync-id') || '');
@@ -71,7 +72,7 @@ export function useCloudSync(tasks, setTasks) {
     return () => clearTimeout(debounceTimer.current);
   }, [tasks, syncId, uploadTasks]);
 
-  // Create new sync blob
+  // Create new sync bin - ID comes from response JSON body
   const createSync = useCallback(async () => {
     setSyncing(true);
     setError(null);
@@ -82,13 +83,12 @@ export function useCloudSync(tasks, setTasks) {
         body: JSON.stringify({ tasks, updatedAt: Date.now() }),
       });
       if (!res.ok) throw new Error(`作成失敗: ${res.status}`);
-      // jsonblob returns ID in x-jsonblob-id header and location header
-      const blobId = res.headers.get('x-jsonblob-id')
-        || res.headers.get('location')?.split('/').pop();
-      if (!blobId) throw new Error('IDの取得に失敗しました');
-      setSyncId(blobId);
+      const result = await res.json();
+      const id = result.id;
+      if (!id) throw new Error('IDの取得に失敗しました');
+      setSyncId(id);
       setLastSynced(new Date());
-      return blobId;
+      return id;
     } catch (e) {
       setError(e.message);
       return null;
@@ -98,26 +98,25 @@ export function useCloudSync(tasks, setTasks) {
   }, [tasks]);
 
   // Join existing sync
-  const joinSync = useCallback((id) => {
+  const joinSync = useCallback(async (id) => {
     const cleanId = id.trim().split('/').pop();
     setSyncId(cleanId);
-    setTimeout(() => {
-      setSyncing(true);
-      fetch(`${API_BASE}/${cleanId}`)
-        .then((res) => {
-          if (!res.ok) throw new Error(`取得失敗: ${res.status}`);
-          return res.json();
-        })
-        .then((data) => {
-          if (data?.tasks && Array.isArray(data.tasks)) {
-            skipNextAutoSync.current = true;
-            setTasks(data.tasks);
-            setLastSynced(new Date());
-          }
-        })
-        .catch((e) => setError(e.message))
-        .finally(() => setSyncing(false));
-    }, 100);
+    setSyncing(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/${cleanId}`);
+      if (!res.ok) throw new Error(`取得失敗: ${res.status}`);
+      const data = await res.json();
+      if (data?.tasks && Array.isArray(data.tasks)) {
+        skipNextAutoSync.current = true;
+        setTasks(data.tasks);
+        setLastSynced(new Date());
+      }
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSyncing(false);
+    }
   }, [setTasks]);
 
   return {
