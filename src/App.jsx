@@ -751,7 +751,9 @@ function App() {
       </header>
 
       {viewMode === 'stats' ? (
-        <StatsView tasks={tasks} tags={tags} karma={karma} getLevel={getLevel} getDailyData={getDailyData} getWeeklyData={getWeeklyData} />
+        <ErrorBoundary>
+          <StatsView tasks={tasks} tags={tags} points={points} getLevel={getLevel} getDailyData={getDailyData} getWeeklyData={getWeeklyData} />
+        </ErrorBoundary>
       ) : viewMode === 'list' ? (
         <div className="flex-1 min-h-0 bg-white mx-4 my-4 rounded-xl shadow-sm overflow-hidden">
           <ListView
