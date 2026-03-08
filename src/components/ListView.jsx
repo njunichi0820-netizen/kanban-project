@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, Trash2, ChevronDown, ChevronUp, Clock } from 'lucide-react';
+import { Pencil, Trash2, ChevronDown, ChevronUp, Clock, Copy } from 'lucide-react';
 import { COLUMNS } from '../constants';
 
 function formatDate(ts) {
@@ -8,7 +8,7 @@ function formatDate(ts) {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-export default function ListView({ tasks, onEditTask, onDeleteTask, onMoveTask, tags = [] }) {
+export default function ListView({ tasks, onEditTask, onDeleteTask, onMoveTask, onDuplicate, tags = [] }) {
   const [sortBy, setSortBy] = useState('column');
   const [sortAsc, setSortAsc] = useState(true);
   const [filterColumn, setFilterColumn] = useState('all');
@@ -110,6 +110,7 @@ export default function ListView({ tasks, onEditTask, onDeleteTask, onMoveTask, 
             onEdit={onEditTask}
             onDelete={onDeleteTask}
             onMove={onMoveTask}
+            onDuplicate={onDuplicate}
           />
         ))}
       </div>
@@ -117,7 +118,7 @@ export default function ListView({ tasks, onEditTask, onDeleteTask, onMoveTask, 
   );
 }
 
-function ListRow({ task, colMap, tags, onEdit, onDelete, onMove }) {
+function ListRow({ task, colMap, tags, onEdit, onDelete, onMove, onDuplicate }) {
   const [showMove, setShowMove] = useState(false);
   const col = colMap[task.column];
   const isDone = task.column === 'done';
@@ -156,6 +157,11 @@ function ListRow({ task, colMap, tags, onEdit, onDelete, onMove }) {
           {formatDate(task.createdAt)}
         </span>
         <div className="flex gap-1">
+          {onDuplicate && (
+            <button onClick={(e) => { e.stopPropagation(); onDuplicate(task); }} className="p-1 text-gray-400 hover:text-blue-500" title="複製">
+              <Copy size={14} />
+            </button>
+          )}
           <button onClick={(e) => { e.stopPropagation(); onEdit(task); }} className="p-1 text-gray-400 hover:text-indigo-500">
             <Pencil size={14} />
           </button>
@@ -204,6 +210,11 @@ function ListRow({ task, colMap, tags, onEdit, onDelete, onMove }) {
             </span>
           </div>
           <div className="flex gap-1 shrink-0 ml-2">
+            {onDuplicate && (
+              <button onClick={(e) => { e.stopPropagation(); onDuplicate(task); }} className="p-1 text-gray-400" title="複製">
+                <Copy size={13} />
+              </button>
+            )}
             <button onClick={(e) => { e.stopPropagation(); onEdit(task); }} className="p-1 text-gray-400">
               <Pencil size={13} />
             </button>

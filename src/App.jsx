@@ -1,6 +1,7 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   DndContext,
+  pointerWithin,
   closestCorners,
   PointerSensor,
   TouchSensor,
@@ -9,19 +10,24 @@ import {
   DragOverlay,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { ChevronLeft, ChevronRight, Plus, LayoutGrid, List, Cloud, CloudOff, Kanban, Palette } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, LayoutGrid, List, Cloud, CloudOff, Kanban, Palette, Archive, BarChart3, HelpCircle } from 'lucide-react';
 import Column from './components/Column';
 import TaskCard from './components/TaskCard';
 import TaskModal from './components/TaskModal';
 import ListView from './components/ListView';
 import SyncPanel from './components/SyncPanel';
 import TagManager from './components/TagManager';
+import BoardFilter from './components/BoardFilter';
+import ArchivePanel from './components/ArchivePanel';
+import StatsView from './components/StatsView';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useCloudSync } from './hooks/useCloudSync';
+import { useKarma } from './hooks/useKarma';
 import { COLUMNS, DEFAULT_TAGS } from './constants';
 
 function App() {
   const [tasks, setTasks] = useLocalStorage('kanban-tasks', []);
+  const [archivedTasks, setArchivedTasks] = useLocalStorage('kanban-archived', []);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [defaultColumn, setDefaultColumn] = useState('idea');
@@ -31,9 +37,20 @@ function App() {
   const [viewMode, setViewMode] = useState('board');
   const [syncPanelOpen, setSyncPanelOpen] = useState(false);
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
+  const [archivePanelOpen, setArchivePanelOpen] = useState(false);
   const [tags, setTags] = useLocalStorage('kanban-tags', DEFAULT_TAGS);
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
-  const sync = useCloudSync(tasks, setTasks);
+  // Search & filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTags, setSelectedTags] = useState([]);
+  const searchInputRef = useRef(null);
+
+  const sync = useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks);
+  const { karma, onTaskComplete, onSubtaskComplete, getLevel, getDailyData, getWeeklyData } = useKarma();
+
+  // Track active column during drag for cross-column DnD fix
+  const activeColumnRef = useRef(null);
 
   // Swipe state
   const touchStart = useRef(null);
@@ -49,15 +66,88 @@ function App() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger when typing in inputs
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+        if (e.key === 'Escape') {
+          e.target.blur();
+        }
+        return;
+      }
+
+      if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        handleAddTask('idea');
+      } else if (e.key === '/') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      } else if (e.key === 'Escape') {
+        if (modalOpen) {
+          setModalOpen(false);
+          setEditingTask(null);
+        } else if (syncPanelOpen) {
+          setSyncPanelOpen(false);
+        } else if (tagManagerOpen) {
+          setTagManagerOpen(false);
+        } else if (archivePanelOpen) {
+          setArchivePanelOpen(false);
+        } else if (showShortcuts) {
+          setShowShortcuts(false);
+        }
+      } else if (e.key === '?') {
+        e.preventDefault();
+        setShowShortcuts((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [modalOpen, syncPanelOpen, tagManagerOpen, archivePanelOpen, showShortcuts]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
   );
 
+  // Custom collision detection: pointerWithin first, fallback to closestCorners
+  const collisionDetection = useCallback((args) => {
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) return pointerCollisions;
+    return closestCorners(args);
+  }, []);
+
+  // Filter tasks for display
+  const filterTasks = useCallback((taskList) => {
+    let result = taskList;
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(
+        (t) =>
+          t.title.toLowerCase().includes(q) ||
+          (t.description || '').toLowerCase().includes(q)
+      );
+    }
+    if (selectedTags.length > 0) {
+      result = result.filter((t) =>
+        selectedTags.some((tagId) => (t.tags || []).includes(tagId))
+      );
+    }
+    return result;
+  }, [searchQuery, selectedTags]);
+
+  const filteredTasks = useMemo(() => filterTasks(tasks), [tasks, filterTasks]);
+
   const getColumnTasks = useCallback(
-    (columnId) => tasks.filter((t) => t.column === columnId),
-    [tasks]
+    (columnId) => filteredTasks.filter((t) => t.column === columnId),
+    [filteredTasks]
   );
+
+  const handleToggleTag = (tagId) => {
+    setSelectedTags((prev) =>
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
+    );
+  };
 
   const handleAddTask = (columnId) => {
     setEditingTask(null);
@@ -75,9 +165,13 @@ function App() {
   };
 
   const handleMoveTask = (taskId, newColumnId) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, column: newColumnId, updatedAt: Date.now() } : t))
-    );
+    setTasks((prev) => {
+      const task = prev.find((t) => t.id === taskId);
+      if (task && task.column !== 'done' && newColumnId === 'done') {
+        onTaskComplete();
+      }
+      return prev.map((t) => (t.id === taskId ? { ...t, column: newColumnId, updatedAt: Date.now() } : t));
+    });
   };
 
   const handleSaveTask = (task) => {
@@ -93,22 +187,91 @@ function App() {
   };
 
   const handleUpdateTask = (updatedTask) => {
-    setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+    setTasks((prev) => {
+      const oldTask = prev.find((t) => t.id === updatedTask.id);
+      // Track subtask completions for karma
+      if (oldTask?.subtasks && updatedTask.subtasks) {
+        const oldDone = oldTask.subtasks.filter((s) => s.done).length;
+        const newDone = updatedTask.subtasks.filter((s) => s.done).length;
+        if (newDone > oldDone) {
+          onSubtaskComplete();
+        }
+      }
+      return prev.map((t) => (t.id === updatedTask.id ? updatedTask : t));
+    });
+  };
+
+  // Duplicate task
+  const handleDuplicate = (task) => {
+    const newTask = {
+      ...task,
+      id: crypto.randomUUID(),
+      title: task.title + ' (コピー)',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      subtasks: (task.subtasks || []).map((s) => ({ ...s, done: false })),
+    };
+    setTasks((prev) => [...prev, newTask]);
+  };
+
+  // Archive task
+  const handleArchive = (taskId) => {
+    setTasks((prev) => {
+      const task = prev.find((t) => t.id === taskId);
+      if (task) {
+        setArchivedTasks((archived) => [...archived, { ...task, archivedAt: Date.now() }]);
+      }
+      return prev.filter((t) => t.id !== taskId);
+    });
+  };
+
+  // Archive all done tasks
+  const handleArchiveAllDone = () => {
+    setTasks((prev) => {
+      const doneTasks = prev.filter((t) => t.column === 'done');
+      if (doneTasks.length > 0) {
+        setArchivedTasks((archived) => [
+          ...archived,
+          ...doneTasks.map((t) => ({ ...t, archivedAt: Date.now() })),
+        ]);
+      }
+      return prev.filter((t) => t.column !== 'done');
+    });
+  };
+
+  // Restore from archive
+  const handleRestoreArchived = (taskId) => {
+    setArchivedTasks((prev) => {
+      const task = prev.find((t) => t.id === taskId);
+      if (task) {
+        const { archivedAt, ...restored } = task;
+        setTasks((tasks) => [...tasks, restored]);
+      }
+      return prev.filter((t) => t.id !== taskId);
+    });
+  };
+
+  // Delete from archive
+  const handleDeleteArchived = (taskId) => {
+    setArchivedTasks((prev) => prev.filter((t) => t.id !== taskId));
   };
 
   const handleDragStart = (event) => {
     dragging.current = true;
     const task = tasks.find((t) => t.id === event.active.id);
     setActiveTask(task || null);
+    if (task) {
+      activeColumnRef.current = task.column;
+    }
   };
 
   const handleDragOver = (event) => {
     const { active, over } = event;
     if (!over) return;
-    const activeData = active.data.current;
     const overColumnId = over.data.current?.columnId || over.id;
-    const activeColumnId = activeData?.columnId;
-    if (activeColumnId && overColumnId && activeColumnId !== overColumnId) {
+    const currentColumn = activeColumnRef.current;
+    if (currentColumn && overColumnId && currentColumn !== overColumnId) {
+      activeColumnRef.current = overColumnId;
       setTasks((prev) =>
         prev.map((t) => (t.id === active.id ? { ...t, column: overColumnId } : t))
       );
@@ -117,11 +280,19 @@ function App() {
 
   const handleDragEnd = (event) => {
     dragging.current = false;
-    setActiveTask(null);
     const { active, over } = event;
+    const draggedTask = tasks.find((t) => t.id === active.id);
+
+    // Check if task moved to done column for karma
+    if (activeTask && activeTask.column !== 'done' && draggedTask?.column === 'done') {
+      onTaskComplete();
+    }
+
+    setActiveTask(null);
+    activeColumnRef.current = null;
     if (!over) return;
-    const activeColumnId = active.data.current?.columnId;
     const overColumnId = over.data.current?.columnId || over.id;
+    const activeColumnId = draggedTask?.column;
     if (!activeColumnId || !overColumnId) return;
     if (active.id !== over.id && activeColumnId === overColumnId) {
       setTasks((prev) => {
@@ -239,6 +410,17 @@ function App() {
         <List size={14} />
         リスト
       </button>
+      <button
+        onClick={() => setViewMode('stats')}
+        className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold tracking-wide rounded-lg transition-all ${
+          viewMode === 'stats'
+            ? 'bg-white text-indigo-600 shadow-sm'
+            : 'text-gray-400 hover:text-gray-600'
+        }`}
+      >
+        <BarChart3 size={14} />
+        統計
+      </button>
     </div>
   );
 
@@ -260,6 +442,35 @@ function App() {
     </div>
   );
 
+  // Keyboard shortcuts help modal
+  const ShortcutsModal = () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowShortcuts(false)}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-5" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-base font-bold text-gray-800 mb-4">キーボードショートカット</h2>
+        <div className="space-y-2">
+          {[
+            ['N', '新規タスク'],
+            ['/', '検索フォーカス'],
+            ['Esc', 'モーダルを閉じる'],
+            ['?', 'このヘルプを表示'],
+          ].map(([key, desc]) => (
+            <div key={key} className="flex items-center gap-3">
+              <kbd className="px-2 py-1 text-xs font-mono bg-gray-100 rounded-lg border text-gray-600 min-w-[32px] text-center">
+                {key}
+              </kbd>
+              <span className="text-sm text-gray-600">{desc}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Done tasks count for archive button
+  const doneTasksCount = tasks.filter((t) => t.column === 'done').length;
+
+  const hasActiveFilters = searchQuery.trim() !== '' || selectedTags.length > 0;
+
   // Mobile view
   if (isMobile) {
     const col = COLUMNS[activeColumnIndex];
@@ -270,6 +481,18 @@ function App() {
           <div className="flex items-center justify-between">
             <Logo size="sm" />
             <div className="flex items-center gap-1">
+              <button
+                onClick={() => setArchivePanelOpen(true)}
+                className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors relative"
+                aria-label="アーカイブ"
+              >
+                <Archive size={18} />
+                {archivedTasks.length > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 text-[9px] font-bold bg-amber-500 text-white rounded-full flex items-center justify-center">
+                    {archivedTasks.length}
+                  </span>
+                )}
+              </button>
               <button
                 onClick={() => setTagManagerOpen(true)}
                 className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
@@ -293,83 +516,112 @@ function App() {
           </div>
         </header>
 
-        {viewMode === 'list' ? (
+        {viewMode === 'stats' ? (
+          <StatsView tasks={tasks} tags={tags} karma={karma} getLevel={getLevel} getDailyData={getDailyData} getWeeklyData={getWeeklyData} />
+        ) : viewMode === 'list' ? (
           <ListView
-            tasks={tasks}
+            tasks={filteredTasks}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteTask}
             onMoveTask={handleMoveTask}
+            onDuplicate={handleDuplicate}
             tags={tags}
           />
         ) : (
-          <div
-            className="flex flex-col flex-1 min-h-0"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            {/* Bar indicator */}
-            <ColumnBarIndicator />
+          <>
+            {/* Board filter */}
+            <BoardFilter
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              tags={tags}
+              selectedTags={selectedTags}
+              onToggleTag={handleToggleTag}
+              searchInputRef={searchInputRef}
+            />
 
-            {/* Column title with count */}
-            <div className="flex items-center justify-center gap-2 pb-1 shrink-0">
-              <div className={`w-2.5 h-2.5 rounded-full ${col.color}`} />
-              <span className="text-sm font-bold tracking-wide text-gray-700">{col.title}</span>
-              <span className="text-xs text-gray-400 bg-gray-200 rounded-full px-2 py-0.5 font-semibold">
-                {getColumnTasks(col.id).length}
-              </span>
-            </div>
-
-            {/* Navigation + Column */}
-            <div className="flex items-center flex-1 min-h-0 px-1">
-              <button
-                onClick={() => setActiveColumnIndex((i) => Math.max(0, i - 1))}
-                disabled={activeColumnIndex === 0}
-                className="p-1 text-gray-400 disabled:opacity-20 shrink-0"
-              >
-                <ChevronLeft size={24} />
-              </button>
-
-              <div
-                className="flex-1 h-full min-h-0 transition-transform duration-200"
-                style={{ transform: `translateX(${swipeOffset}px)` }}
-              >
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCorners}
-                  onDragStart={handleDragStart}
-                  onDragOver={handleDragOver}
-                  onDragEnd={handleDragEnd}
+            {/* Archive all done button */}
+            {doneTasksCount > 0 && activeColumnIndex === 3 && (
+              <div className="px-4 py-1 shrink-0">
+                <button
+                  onClick={handleArchiveAllDone}
+                  className="text-[11px] text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg font-semibold hover:bg-amber-100 transition-colors"
                 >
-                  <Column
-                    column={col}
-                    tasks={getColumnTasks(col.id)}
-                    onAddTask={handleAddTask}
-                    onEditTask={handleEditTask}
-                    onDeleteTask={handleDeleteTask}
-                    onMoveTask={handleMoveTask}
-                    onUpdateTask={handleUpdateTask}
-                    tags={tags}
-                  />
-                  <DragOverlay>
-                    {activeTask ? (
-                      <div className="opacity-80">
-                        <TaskCard task={activeTask} columnId={activeTask.column} onEdit={() => {}} onDelete={() => {}} tags={tags} />
-                      </div>
-                    ) : null}
-                  </DragOverlay>
-                </DndContext>
+                  完了タスクを一括アーカイブ ({doneTasksCount})
+                </button>
+              </div>
+            )}
+
+            <div
+              className="flex flex-col flex-1 min-h-0"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              {/* Bar indicator */}
+              <ColumnBarIndicator />
+
+              {/* Column title with count */}
+              <div className="flex items-center justify-center gap-2 pb-1 shrink-0">
+                <div className={`w-2.5 h-2.5 rounded-full ${col.color}`} />
+                <span className="text-sm font-bold tracking-wide text-gray-700">{col.title}</span>
+                <span className="text-xs text-gray-400 bg-gray-200 rounded-full px-2 py-0.5 font-semibold">
+                  {getColumnTasks(col.id).length}
+                </span>
               </div>
 
-              <button
-                onClick={() => setActiveColumnIndex((i) => Math.min(COLUMNS.length - 1, i + 1))}
-                disabled={activeColumnIndex === COLUMNS.length - 1}
-                className="p-1 text-gray-400 disabled:opacity-20 shrink-0"
-              >
-                <ChevronRight size={24} />
-              </button>
+              {/* Navigation + Column */}
+              <div className="flex items-center flex-1 min-h-0 px-1">
+                <button
+                  onClick={() => setActiveColumnIndex((i) => Math.max(0, i - 1))}
+                  disabled={activeColumnIndex === 0}
+                  className="p-1 text-gray-400 disabled:opacity-20 shrink-0"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+
+                <div
+                  className="flex-1 h-full min-h-0 transition-transform duration-200"
+                  style={{ transform: `translateX(${swipeOffset}px)` }}
+                >
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={collisionDetection}
+                    onDragStart={handleDragStart}
+                    onDragOver={handleDragOver}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <Column
+                      column={col}
+                      tasks={getColumnTasks(col.id)}
+                      onAddTask={handleAddTask}
+                      onEditTask={handleEditTask}
+                      onDeleteTask={handleDeleteTask}
+                      onMoveTask={handleMoveTask}
+                      onUpdateTask={handleUpdateTask}
+                      onDuplicate={handleDuplicate}
+                      onArchive={handleArchive}
+                      tags={tags}
+                    />
+                    <DragOverlay>
+                      {activeTask ? (
+                        <div className="opacity-80">
+                          <TaskCard task={activeTask} columnId={activeTask.column} onEdit={() => {}} onDelete={() => {}} tags={tags} />
+                        </div>
+                      ) : null}
+                    </DragOverlay>
+                  </DndContext>
+                </div>
+
+                <button
+                  onClick={() => setActiveColumnIndex((i) => Math.min(COLUMNS.length - 1, i + 1))}
+                  disabled={activeColumnIndex === COLUMNS.length - 1}
+                  className="p-1 text-gray-400 disabled:opacity-20 shrink-0"
+                >
+                  <ChevronRight size={24} />
+                </button>
+              </div>
             </div>
-          </div>
+          </>
         )}
 
         <TaskModal
@@ -386,6 +638,15 @@ function App() {
         {tagManagerOpen && (
           <TagManager tags={tags} onUpdateTags={setTags} onClose={() => setTagManagerOpen(false)} />
         )}
+        {archivePanelOpen && (
+          <ArchivePanel
+            archivedTasks={archivedTasks}
+            onRestore={handleRestoreArchived}
+            onDelete={handleDeleteArchived}
+            onClose={() => setArchivePanelOpen(false)}
+          />
+        )}
+        {showShortcuts && <ShortcutsModal />}
       </div>
     );
   }
@@ -400,12 +661,39 @@ function App() {
           <ViewTabs />
         </div>
         <div className="flex items-center gap-3">
+          {doneTasksCount > 0 && viewMode === 'board' && (
+            <button
+              onClick={handleArchiveAllDone}
+              className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg font-semibold hover:bg-amber-100 transition-colors"
+            >
+              完了を一括アーカイブ ({doneTasksCount})
+            </button>
+          )}
+          <button
+            onClick={() => setArchivePanelOpen(true)}
+            className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors relative"
+            aria-label="アーカイブ"
+          >
+            <Archive size={20} />
+            {archivedTasks.length > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 text-[9px] font-bold bg-amber-500 text-white rounded-full flex items-center justify-center">
+                {archivedTasks.length}
+              </span>
+            )}
+          </button>
           <button
             onClick={() => setTagManagerOpen(true)}
             className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
             aria-label="タグ管理"
           >
             <Palette size={20} />
+          </button>
+          <button
+            onClick={() => setShowShortcuts((v) => !v)}
+            className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="ショートカット"
+          >
+            <HelpCircle size={20} />
           </button>
           <SyncButton size={20} />
           <button
@@ -418,47 +706,64 @@ function App() {
         </div>
       </header>
 
-      {viewMode === 'list' ? (
+      {viewMode === 'stats' ? (
+        <StatsView tasks={tasks} tags={tags} karma={karma} getLevel={getLevel} getDailyData={getDailyData} getWeeklyData={getWeeklyData} />
+      ) : viewMode === 'list' ? (
         <div className="flex-1 min-h-0 bg-white mx-4 my-4 rounded-xl shadow-sm overflow-hidden">
           <ListView
-            tasks={tasks}
+            tasks={filteredTasks}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteTask}
             onMoveTask={handleMoveTask}
+            onDuplicate={handleDuplicate}
             tags={tags}
           />
         </div>
       ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="flex-1 grid grid-cols-4 gap-4 p-4 min-h-0 overflow-hidden">
-            {COLUMNS.map((col) => (
-              <Column
-                key={col.id}
-                column={col}
-                tasks={getColumnTasks(col.id)}
-                onAddTask={handleAddTask}
-                onEditTask={handleEditTask}
-                onDeleteTask={handleDeleteTask}
-                onMoveTask={handleMoveTask}
-                onUpdateTask={handleUpdateTask}
-                tags={tags}
-              />
-            ))}
-          </div>
-          <DragOverlay>
-            {activeTask ? (
-              <div className="opacity-80">
-                <TaskCard task={activeTask} columnId={activeTask.column} onEdit={() => {}} onDelete={() => {}} tags={tags} />
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+        <>
+          {/* Board filter bar */}
+          <BoardFilter
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            tags={tags}
+            selectedTags={selectedTags}
+            onToggleTag={handleToggleTag}
+            searchInputRef={searchInputRef}
+          />
+
+          <DndContext
+            sensors={sensors}
+            collisionDetection={collisionDetection}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="flex-1 grid grid-cols-4 gap-4 p-4 min-h-0 overflow-hidden">
+              {COLUMNS.map((col) => (
+                <Column
+                  key={col.id}
+                  column={col}
+                  tasks={getColumnTasks(col.id)}
+                  onAddTask={handleAddTask}
+                  onEditTask={handleEditTask}
+                  onDeleteTask={handleDeleteTask}
+                  onMoveTask={handleMoveTask}
+                  onUpdateTask={handleUpdateTask}
+                  onDuplicate={handleDuplicate}
+                  onArchive={handleArchive}
+                  tags={tags}
+                />
+              ))}
+            </div>
+            <DragOverlay>
+              {activeTask ? (
+                <div className="opacity-80">
+                  <TaskCard task={activeTask} columnId={activeTask.column} onEdit={() => {}} onDelete={() => {}} tags={tags} />
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        </>
       )}
 
       <TaskModal
@@ -475,6 +780,15 @@ function App() {
       {tagManagerOpen && (
         <TagManager tags={tags} onUpdateTags={setTags} onClose={() => setTagManagerOpen(false)} />
       )}
+      {archivePanelOpen && (
+        <ArchivePanel
+          archivedTasks={archivedTasks}
+          onRestore={handleRestoreArchived}
+          onDelete={handleDeleteArchived}
+          onClose={() => setArchivePanelOpen(false)}
+        />
+      )}
+      {showShortcuts && <ShortcutsModal />}
     </div>
   );
 }

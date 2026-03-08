@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Pencil, Trash2, ChevronDown, ChevronRight, Plus, Check, Clock } from 'lucide-react';
+import { GripVertical, Pencil, Trash2, ChevronDown, ChevronRight, Plus, Check, Clock, Copy, Archive } from 'lucide-react';
 import { COLUMNS } from '../constants';
 
 function formatDate(ts) {
@@ -10,7 +10,7 @@ function formatDate(ts) {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onUpdateTask, tags = [] }) {
+export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onUpdateTask, onDuplicate, onArchive, tags = [] }) {
   const isDone = columnId === 'done';
   const [expanded, setExpanded] = useState(false);
   const [subtasksOpen, setSubtasksOpen] = useState(true);
@@ -118,6 +118,24 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onU
         </div>
 
         <div className="flex gap-0.5 shrink-0">
+          {onDuplicate && (
+            <button
+              onClick={() => onDuplicate(task)}
+              className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+              title="複製"
+            >
+              <Copy size={13} />
+            </button>
+          )}
+          {onArchive && (
+            <button
+              onClick={() => onArchive(task.id)}
+              className="p-1.5 text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
+              title="アーカイブ"
+            >
+              <Archive size={13} />
+            </button>
+          )}
           <button
             onClick={() => onEdit(task)}
             className="p-1.5 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors"

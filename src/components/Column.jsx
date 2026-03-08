@@ -2,9 +2,11 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Plus } from 'lucide-react';
 import TaskCard from './TaskCard';
+import { EMPTY_MESSAGES } from '../constants';
 
-export default function Column({ column, tasks, onAddTask, onEditTask, onDeleteTask, onMoveTask, onUpdateTask, tags }) {
+export default function Column({ column, tasks, onAddTask, onEditTask, onDeleteTask, onMoveTask, onUpdateTask, onDuplicate, onArchive, tags }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
+  const emptyState = EMPTY_MESSAGES[column.id];
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-gray-100 rounded-xl">
@@ -27,21 +29,30 @@ export default function Column({ column, tasks, onAddTask, onEditTask, onDeleteT
 
       <div
         ref={setNodeRef}
-        className={`flex-1 overflow-y-auto px-3 pb-3 space-y-2 min-h-[80px] transition-colors ${isOver ? 'bg-blue-50' : ''}`}
+        className={`flex-1 overflow-y-auto px-3 pb-3 space-y-2 min-h-[120px] transition-colors ${isOver ? 'bg-blue-50' : ''}`}
       >
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-          {tasks.map(task => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              columnId={column.id}
-              onEdit={onEditTask}
-              onDelete={onDeleteTask}
-              onMove={onMoveTask}
-              onUpdateTask={onUpdateTask}
-              tags={tags}
-            />
-          ))}
+          {tasks.length === 0 && emptyState ? (
+            <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+              <span className="text-3xl mb-2">{emptyState.icon}</span>
+              <p className="text-xs font-medium">{emptyState.message}</p>
+            </div>
+          ) : (
+            tasks.map(task => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                columnId={column.id}
+                onEdit={onEditTask}
+                onDelete={onDeleteTask}
+                onMove={onMoveTask}
+                onUpdateTask={onUpdateTask}
+                onDuplicate={onDuplicate}
+                onArchive={onArchive}
+                tags={tags}
+              />
+            ))
+          )}
         </SortableContext>
       </div>
     </div>

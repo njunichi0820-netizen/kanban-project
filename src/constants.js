@@ -1,9 +1,16 @@
 export const COLUMNS = [
-  { id: 'idea', title: 'Idea', color: 'bg-purple-500', lightBg: 'bg-purple-50', lightText: 'text-purple-600', ring: 'ring-purple-200' },
-  { id: 'todo', title: 'ToDo', color: 'bg-blue-500', lightBg: 'bg-blue-50', lightText: 'text-blue-600', ring: 'ring-blue-200' },
-  { id: 'doing', title: 'Doing', color: 'bg-amber-500', lightBg: 'bg-amber-50', lightText: 'text-amber-600', ring: 'ring-amber-200' },
-  { id: 'done', title: 'Done', color: 'bg-emerald-500', lightBg: 'bg-emerald-50', lightText: 'text-emerald-600', ring: 'ring-emerald-200' },
+  { id: 'idea', title: 'アイデア', color: 'bg-yellow-500', lightBg: 'bg-yellow-50', lightText: 'text-yellow-600', ring: 'ring-yellow-200' },
+  { id: 'todo', title: '未着手', color: 'bg-purple-500', lightBg: 'bg-purple-50', lightText: 'text-purple-600', ring: 'ring-purple-200' },
+  { id: 'doing', title: '進行中', color: 'bg-blue-500', lightBg: 'bg-blue-50', lightText: 'text-blue-600', ring: 'ring-blue-200' },
+  { id: 'done', title: '完了', color: 'bg-emerald-500', lightBg: 'bg-emerald-50', lightText: 'text-emerald-600', ring: 'ring-emerald-200' },
 ];
+
+export const EMPTY_MESSAGES = {
+  idea: { icon: '💡', message: 'アイデアを追加しましょう' },
+  todo: { icon: '📋', message: 'タスクを計画しましょう' },
+  doing: { icon: '🔥', message: '作業を始めましょう' },
+  done: { icon: '🎉', message: '完了タスクがここに表示されます' },
+};
 
 export const DEFAULT_TAGS = [
   { id: 'project', label: 'Project', color: '#6366f1' },
