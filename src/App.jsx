@@ -423,42 +423,55 @@ function App() {
     </button>
   );
 
-  // Tab buttons
-  const ViewTabs = ({ className = '' }) => (
-    <div className={`flex bg-gray-100 rounded-xl p-1 ${className}`}>
-      <button
-        onClick={() => setViewMode('board')}
-        className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold tracking-wide rounded-lg transition-all ${
-          viewMode === 'board'
-            ? 'bg-white text-indigo-600 shadow-sm'
-            : 'text-gray-400 hover:text-gray-600'
-        }`}
-      >
-        <LayoutGrid size={14} />
-        ボード
-      </button>
-      <button
-        onClick={() => setViewMode('list')}
-        className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold tracking-wide rounded-lg transition-all ${
-          viewMode === 'list'
-            ? 'bg-white text-indigo-600 shadow-sm'
-            : 'text-gray-400 hover:text-gray-600'
-        }`}
-      >
-        <List size={14} />
-        リスト
-      </button>
-      <button
-        onClick={() => setViewMode('stats')}
-        className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold tracking-wide rounded-lg transition-all ${
-          viewMode === 'stats'
-            ? 'bg-white text-indigo-600 shadow-sm'
-            : 'text-gray-400 hover:text-gray-600'
-        }`}
-      >
-        <BarChart3 size={14} />
-        統計
-      </button>
+  // Tab config
+  const VIEW_TABS = [
+    { id: 'board', label: 'ボード', desc: 'カンバン形式でタスクを管理', icon: LayoutGrid },
+    { id: 'list', label: 'リスト', desc: '一覧でタスクを検索・ソート', icon: List },
+    { id: 'stats', label: '統計', desc: 'ポイントと進捗を確認', icon: BarChart3 },
+  ];
+
+  // Tab buttons — card style (image reference)
+  const ViewTabs = ({ className = '', compact = false }) => (
+    <div className={`flex gap-2 ${className}`}>
+      {VIEW_TABS.map((tab) => {
+        const Icon = tab.icon;
+        const active = viewMode === tab.id;
+        if (compact) {
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setViewMode(tab.id)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                active
+                  ? 'bg-blue-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600'
+              }`}
+            >
+              <Icon size={14} />
+              {tab.label}
+            </button>
+          );
+        }
+        return (
+          <button
+            key={tab.id}
+            onClick={() => setViewMode(tab.id)}
+            className={`flex-1 rounded-2xl p-4 text-left transition-all ${
+              active
+                ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg'
+                : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+            }`}
+          >
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className={`p-1.5 rounded-lg ${active ? 'bg-white/20' : 'bg-gray-200'}`}>
+                <Icon size={16} className={active ? 'text-white' : 'text-gray-400'} />
+              </div>
+              <span className={`text-sm font-bold ${active ? 'text-white' : 'text-gray-600'}`}>{tab.label}</span>
+            </div>
+            <p className={`text-[11px] leading-snug ml-[38px] ${active ? 'text-blue-100' : 'text-gray-400'}`}>{tab.desc}</p>
+          </button>
+        );
+      })}
     </div>
   );
 
@@ -554,7 +567,7 @@ function App() {
           </div>
           {/* Tabs under header */}
           <div className="mt-2">
-            <ViewTabs />
+            <ViewTabs compact />
           </div>
         </header>
 
@@ -699,10 +712,10 @@ function App() {
   return (
     <div className="flex flex-col h-dvh bg-slate-100">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-3 bg-white shadow-sm shrink-0">
+      <header className="px-6 py-3 bg-white shadow-sm shrink-0 space-y-3">
+        <div className="flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Logo />
-          <ViewTabs />
         </div>
         <div className="flex items-center gap-3">
           {doneTasksCount > 0 && viewMode === 'board' && (
@@ -748,6 +761,8 @@ function App() {
             タスク追加
           </button>
         </div>
+        </div>
+        <ViewTabs />
       </header>
 
       {viewMode === 'stats' ? (
