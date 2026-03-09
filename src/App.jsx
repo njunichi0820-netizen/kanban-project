@@ -24,7 +24,7 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { useCloudSync } from './hooks/useCloudSync';
 import { useKarma } from './hooks/useKarma';
 import { useVoiceTask } from './hooks/useVoiceTask';
-import { COLUMNS, DEFAULT_TAGS } from './constants';
+import { COLUMNS, DEFAULT_TAGS, GTD_DETAILS } from './constants';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -72,6 +72,9 @@ function App() {
   const [archivePanelOpen, setArchivePanelOpen] = useState(false);
   const [tags, setTags] = useLocalStorage('kanban-tags', DEFAULT_TAGS);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [completionEffect, setCompletionEffect] = useState(false);
+  const [gtdModal, setGtdModal] = useState(null);
+  const longPressTimerRef = useRef(null);
 
   // Search & filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -227,6 +230,8 @@ function App() {
       const task = prev.find((t) => t.id === taskId);
       if (task && task.column !== 'done' && newColumnId === 'done') {
         onTaskComplete();
+        setCompletionEffect(true);
+        setTimeout(() => setCompletionEffect(false), 2000);
       }
       return prev.map((t) => (t.id === taskId ? { ...t, column: newColumnId, updatedAt: Date.now() } : t));
     });
@@ -345,6 +350,8 @@ function App() {
     // Check if task moved to done column for karma
     if (activeTask && activeTask.column !== 'done' && draggedTask?.column === 'done') {
       onTaskComplete();
+      setCompletionEffect(true);
+      setTimeout(() => setCompletionEffect(false), 2000);
     }
 
     setActiveTask(null);
@@ -539,23 +546,52 @@ function App() {
     </div>
   );
 
-  // Bar indicator for mobile columns
-  const ColumnBarIndicator = () => (
-    <div className="flex items-center gap-1.5 px-6 py-2 shrink-0">
-      {COLUMNS.map((c, i) => (
-        <button
-          key={c.id}
-          onClick={() => setActiveColumnIndex(i)}
-          className={`h-1 rounded-full transition-all duration-300 ${
-            i === activeColumnIndex
-              ? `flex-[2] ${c.color}`
-              : 'flex-1 bg-gray-300'
-          }`}
-          aria-label={c.title}
-        />
-      ))}
-    </div>
-  );
+  // Compact bar indicator + column title merged for mobile
+  const ColumnBarIndicator = () => {
+    const col = COLUMNS[activeColumnIndex];
+    const handleBarLongPressStart = (colId) => {
+      longPressTimerRef.current = setTimeout(() => {
+        setGtdModal(colId);
+      }, 500);
+    };
+    const handleBarLongPressEnd = () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+    };
+    return (
+      <div
+        className="flex items-center gap-2 px-4 py-1 shrink-0"
+        onTouchStart={() => handleBarLongPressStart(col.id)}
+        onTouchEnd={handleBarLongPressEnd}
+        onTouchCancel={handleBarLongPressEnd}
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        <div className="flex items-center gap-1.5 flex-1">
+          {COLUMNS.map((c, i) => (
+            <button
+              key={c.id}
+              onClick={() => setActiveColumnIndex(i)}
+              className={`h-1 rounded-full transition-all duration-300 ${
+                i === activeColumnIndex
+                  ? `flex-[2] ${c.color}`
+                  : 'flex-1 bg-gray-300'
+              }`}
+              aria-label={c.title}
+            />
+          ))}
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <div className={`w-2 h-2 rounded-full ${col.color}`} />
+          <span className="text-[11px] font-bold text-gray-600">{col.title}</span>
+          <span className="text-[10px] text-gray-400 bg-gray-200 rounded-full px-1.5 py-0.5 font-semibold leading-none">
+            {getColumnTasks(col.id).length}
+          </span>
+        </div>
+      </div>
+    );
+  };
 
   // Keyboard shortcuts help modal
   const ShortcutsModal = () => (
@@ -698,17 +734,8 @@ function App() {
               onTouchMove={handleBoardTouchMove}
               onTouchEnd={handleBoardTouchEnd}
             >
-              {/* Bar indicator */}
+              {/* Bar indicator + column title (compact) */}
               <ColumnBarIndicator />
-
-              {/* Column title with count */}
-              <div className="flex items-center justify-center gap-2 pb-1 shrink-0">
-                <div className={`w-2.5 h-2.5 rounded-full ${col.color}`} />
-                <span className="text-sm font-bold tracking-wide text-gray-700">{col.title}</span>
-                <span className="text-xs text-gray-400 bg-gray-200 rounded-full px-2 py-0.5 font-semibold">
-                  {getColumnTasks(col.id).length}
-                </span>
-              </div>
 
               {/* Navigation + Column — no DnD on mobile */}
               <div className="flex items-center flex-1 min-h-0 px-1">
@@ -773,6 +800,8 @@ function App() {
           />
         )}
         {showShortcuts && <ShortcutsModal />}
+        {gtdModal && <GtdDetailModal columnId={gtdModal} onClose={() => setGtdModal(null)} />}
+        {completionEffect && <CompletionEffect />}
       </div>
     );
   }
@@ -920,6 +949,98 @@ function App() {
         />
       )}
       {showShortcuts && <ShortcutsModal />}
+      {completionEffect && <CompletionEffect />}
+    </div>
+  );
+}
+
+// GTD Detail Modal (for mobile long-press)
+function GtdDetailModal({ columnId, onClose }) {
+  const col = COLUMNS.find((c) => c.id === columnId);
+  const gtd = GTD_DETAILS[columnId];
+  if (!col || !gtd) return null;
+
+  const ICON_MAP = { Lightbulb: '💡', ClipboardList: '📋', Zap: '⚡', PartyPopper: '🎉' };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+        <div className={`bg-gradient-to-r ${col.gradient} p-4 rounded-t-2xl`}>
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl">{ICON_MAP[col.icon] || ''}</span>
+            <div>
+              <h3 className="font-bold text-white">{gtd.title}</h3>
+              <p className="text-[11px] text-white/75 mt-0.5">GTD ルール</p>
+            </div>
+          </div>
+        </div>
+        <div className="p-5 space-y-3">
+          {gtd.rules.map((rule, i) => (
+            <div key={i} className="flex items-start gap-2.5">
+              <span className="text-[11px] font-bold text-gray-400 mt-0.5 shrink-0">{i + 1}.</span>
+              <p className="text-sm text-gray-700 leading-relaxed">{rule}</p>
+            </div>
+          ))}
+        </div>
+        <div className="px-5 pb-4">
+          <button onClick={onClose} className="w-full px-4 py-2.5 text-sm font-bold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200">
+            閉じる
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Completion celebration effect
+function CompletionEffect() {
+  const particles = Array.from({ length: 24 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    delay: Math.random() * 0.5,
+    size: Math.random() * 8 + 4,
+    color: ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#3b82f6', '#ec4899'][i % 6],
+    drift: (Math.random() - 0.5) * 60,
+  }));
+
+  return (
+    <div className="fixed inset-0 z-[60] pointer-events-none overflow-hidden">
+      {particles.map((p) => (
+        <div
+          key={p.id}
+          className="absolute rounded-full animate-confetti"
+          style={{
+            left: `${p.x}%`,
+            top: '-10px',
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            backgroundColor: p.color,
+            animationDelay: `${p.delay}s`,
+            '--drift': `${p.drift}px`,
+          }}
+        />
+      ))}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="animate-bounce-in text-5xl">🎉</div>
+      </div>
+      <style>{`
+        @keyframes confetti-fall {
+          0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(100vh) translateX(var(--drift)) rotate(720deg); opacity: 0; }
+        }
+        @keyframes bounce-in {
+          0% { transform: scale(0); opacity: 0; }
+          50% { transform: scale(1.3); opacity: 1; }
+          70% { transform: scale(0.9); }
+          100% { transform: scale(1); opacity: 0; }
+        }
+        .animate-confetti {
+          animation: confetti-fall 2s ease-out forwards;
+        }
+        .animate-bounce-in {
+          animation: bounce-in 1.5s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }

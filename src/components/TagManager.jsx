@@ -101,7 +101,7 @@ export default function TagManager({ tags, onUpdateTags, onClose }) {
               type="text"
               value={newLabel}
               onChange={e => setNewLabel(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+              onKeyDown={e => { if (e.isComposing || e.nativeEvent?.isComposing) return; if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
               placeholder="タグ名"
               className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />

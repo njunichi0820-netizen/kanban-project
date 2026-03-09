@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Pencil, Trash2, ChevronDown, ChevronRight, Plus, Check, Clock, Copy, Archive, Flame } from 'lucide-react';
+import { GripVertical, Pencil, Trash2, ChevronDown, ChevronRight, Plus, Check, Clock, Copy, Archive, Flame, ExternalLink } from 'lucide-react';
 import { COLUMNS } from '../constants';
 
 function formatDate(ts) {
@@ -10,11 +10,13 @@ function formatDate(ts) {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onUpdateTask, onDuplicate, onArchive, tags = [] }) {
+export default function TaskCard({ task, columnId, isExpanded, onToggleExpand, onEdit, onDelete, onMove, onUpdateTask, onDuplicate, onArchive, tags = [] }) {
   const isDone = columnId === 'done';
-  const [expanded, setExpanded] = useState(false);
+  const expanded = isExpanded ?? false;
   const [subtasksOpen, setSubtasksOpen] = useState(true);
   const [newSubtask, setNewSubtask] = useState('');
+  const [editingSubIdx, setEditingSubIdx] = useState(null);
+  const [editingSubText, setEditingSubText] = useState('');
   const {
     attributes,
     listeners,
@@ -32,10 +34,11 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onU
   const subtasks = task.subtasks || [];
   const doneCount = subtasks.filter(s => s.done).length;
   const taskTags = (task.tags || []).map(tid => tags.find(t => t.id === tid)).filter(Boolean);
+  const links = task.links || [];
 
   const handleCardClick = (e) => {
-    if (e.target.closest('button') || e.target.closest('input')) return;
-    setExpanded(v => !v);
+    if (e.target.closest('button') || e.target.closest('input') || e.target.closest('a') || e.target.closest('select')) return;
+    onToggleExpand?.(task.id);
   };
 
   const toggleSubtask = (idx) => {
@@ -54,12 +57,30 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onU
     onUpdateTask?.({ ...task, subtasks: subtasks.filter((_, i) => i !== idx) });
   };
 
+  const startEditSubtask = (idx) => {
+    setEditingSubIdx(idx);
+    setEditingSubText(subtasks[idx].text);
+  };
+
+  const saveEditSubtask = () => {
+    if (editingSubIdx === null) return;
+    if (!editingSubText.trim()) {
+      removeSubtask(editingSubIdx);
+    } else {
+      const updated = subtasks.map((s, i) => i === editingSubIdx ? { ...s, text: editingSubText.trim() } : s);
+      onUpdateTask?.({ ...task, subtasks: updated });
+    }
+    setEditingSubIdx(null);
+    setEditingSubText('');
+  };
+
   const togglePriority = () => {
     onUpdateTask?.({ ...task, priority: !task.priority });
   };
 
   return (
     <div
+      data-task-card
       ref={setNodeRef}
       style={style}
       {...attributes}
@@ -99,7 +120,7 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onU
             </div>
           )}
 
-          {/* Date + subtask progress */}
+          {/* Date + subtask progress + link indicator */}
           <div className="flex items-center gap-2 mt-1.5">
             {task.createdAt && (
               <span className="flex items-center gap-0.5 text-[10px] text-gray-400">
@@ -110,6 +131,11 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onU
             {subtasks.length > 0 && (
               <span className="text-[10px] text-gray-400">
                 <Check size={10} className="inline" /> {doneCount}/{subtasks.length}
+              </span>
+            )}
+            {links.length > 0 && (
+              <span className="text-[10px] text-blue-400">
+                <ExternalLink size={10} className="inline" /> {links.length}
               </span>
             )}
           </div>
@@ -133,6 +159,25 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onU
             <p className={`text-xs leading-relaxed break-words ${isDone ? 'line-through text-gray-300' : 'text-gray-500'}`} style={{ overflowWrap: 'anywhere' }}>
               {task.description}
             </p>
+          )}
+
+          {/* Links */}
+          {links.length > 0 && (
+            <div className="space-y-1">
+              {links.map((link, i) => (
+                <a
+                  key={i}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-[11px] text-blue-500 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink size={11} className="shrink-0" />
+                  <span className="truncate">{link.label || link.url}</span>
+                </a>
+              ))}
+            </div>
           )}
 
           {/* Priority toggle */}
@@ -170,12 +215,35 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onU
                       >
                         {st.done && <Check size={10} className="text-white" />}
                       </button>
-                      <span className={`text-xs flex-1 ${st.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
-                        {st.text}
-                      </span>
+                      {editingSubIdx === idx ? (
+                        <input
+                          type="text"
+                          value={editingSubText}
+                          onChange={(e) => setEditingSubText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.isComposing || e.nativeEvent?.isComposing) return;
+                            if (e.key === 'Enter') { e.preventDefault(); saveEditSubtask(); }
+                            if (e.key === 'Escape') { setEditingSubIdx(null); }
+                          }}
+                          onBlur={saveEditSubtask}
+                          autoFocus
+                          className="flex-1 text-xs py-0.5 px-1.5 bg-white border rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-300"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <span className={`text-xs flex-1 ${st.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                          {st.text}
+                        </span>
+                      )}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); startEditSubtask(idx); }}
+                        className="p-0.5 text-gray-300 hover:text-indigo-400 opacity-0 group-hover/st:opacity-100 md:opacity-0 transition-opacity"
+                      >
+                        <Pencil size={10} />
+                      </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); removeSubtask(idx); }}
-                        className="p-0.5 text-gray-300 hover:text-red-400 opacity-0 group-hover/st:opacity-100 transition-opacity"
+                        className="p-0.5 text-gray-300 hover:text-red-400 opacity-0 group-hover/st:opacity-100 md:opacity-0 transition-opacity"
                       >
                         <Trash2 size={10} />
                       </button>
@@ -193,7 +261,10 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onU
               type="text"
               value={newSubtask}
               onChange={e => setNewSubtask(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSubtask(); } }}
+              onKeyDown={e => {
+                if (e.isComposing || e.nativeEvent?.isComposing) return;
+                if (e.key === 'Enter') { e.preventDefault(); addSubtask(); }
+              }}
               placeholder="サブタスクを追加..."
               className="flex-1 text-xs py-1 px-2 bg-gray-50 rounded-lg border-0 focus:outline-none focus:ring-1 focus:ring-indigo-300"
             />
@@ -209,7 +280,7 @@ export default function TaskCard({ task, columnId, onEdit, onDelete, onMove, onU
                     key={c.id}
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (!isCurrent) { onMove(task.id, c.id); setExpanded(false); }
+                      if (!isCurrent) { onMove(task.id, c.id); onToggleExpand?.(null); }
                     }}
                     disabled={isCurrent}
                     className={`flex-1 text-[11px] py-2 rounded-xl font-semibold transition-all ${

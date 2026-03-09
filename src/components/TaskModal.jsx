@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Flame } from 'lucide-react';
+import { X, Flame, Plus, Trash2, ExternalLink } from 'lucide-react';
 import { COLUMNS } from '../constants';
 
 export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSave, onClose }) {
@@ -8,6 +8,9 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
   const [column, setColumn] = useState('idea');
   const [selectedTags, setSelectedTags] = useState([]);
   const [priority, setPriority] = useState(false);
+  const [links, setLinks] = useState([]);
+  const [newLinkUrl, setNewLinkUrl] = useState('');
+  const [newLinkLabel, setNewLinkLabel] = useState('');
   const titleRef = useRef(null);
 
   useEffect(() => {
@@ -18,13 +21,17 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
         setColumn(task.column);
         setSelectedTags(task.tags || []);
         setPriority(task.priority || false);
+        setLinks(task.links || []);
       } else {
         setTitle('');
         setDescription('');
         setColumn(defaultColumn || 'idea');
         setSelectedTags([]);
         setPriority(false);
+        setLinks([]);
       }
+      setNewLinkUrl('');
+      setNewLinkLabel('');
       setTimeout(() => titleRef.current?.focus(), 100);
     }
   }, [isOpen, task, defaultColumn]);
@@ -37,6 +44,17 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
     );
   };
 
+  const addLink = () => {
+    if (!newLinkUrl.trim()) return;
+    setLinks(prev => [...prev, { url: newLinkUrl.trim(), label: newLinkLabel.trim() || '' }]);
+    setNewLinkUrl('');
+    setNewLinkLabel('');
+  };
+
+  const removeLink = (idx) => {
+    setLinks(prev => prev.filter((_, i) => i !== idx));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -47,6 +65,7 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
       tags: selectedTags,
       priority,
       column,
+      links,
       subtasks: task?.subtasks || [],
       createdAt: task?.createdAt || Date.now(),
       updatedAt: Date.now(),
@@ -58,7 +77,7 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h3 className="font-bold text-gray-800">
             {task ? 'タスク編集' : 'タスク追加'}
@@ -115,6 +134,55 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* Links */}
+          <div>
+            <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">
+              <ExternalLink size={11} className="inline mr-1" />リンク
+            </label>
+            {links.length > 0 && (
+              <div className="space-y-1.5 mb-2">
+                {links.map((link, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-lg px-2.5 py-1.5">
+                    <ExternalLink size={12} className="text-blue-400 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      {link.label && <p className="text-[11px] font-semibold text-gray-600 truncate">{link.label}</p>}
+                      <p className="text-[10px] text-blue-500 truncate">{link.url}</p>
+                    </div>
+                    <button type="button" onClick={() => removeLink(i)} className="p-1 text-gray-300 hover:text-red-500 shrink-0">
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <input
+                type="url"
+                value={newLinkUrl}
+                onChange={(e) => setNewLinkUrl(e.target.value)}
+                placeholder="https://..."
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+              />
+              <div className="flex gap-1.5">
+                <input
+                  type="text"
+                  value={newLinkLabel}
+                  onChange={(e) => setNewLinkLabel(e.target.value)}
+                  placeholder="表示名（任意）"
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={addLink}
+                  disabled={!newLinkUrl.trim()}
+                  className="px-3 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 disabled:opacity-30"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
             </div>
           </div>
 
