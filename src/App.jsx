@@ -82,7 +82,7 @@ function App() {
   const searchInputRef = useRef(null);
 
   const { points, setPoints, onTaskCreate, onTaskComplete, onSubtaskComplete, getLevel, getDailyData, getWeeklyData } = useKarma();
-  const sync = useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, points, setPoints);
+  const sync = useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, points, setPoints, tags, setTags);
   const voice = useVoiceTask();
 
   const handleVoiceTasks = useCallback((voiceTasks) => {

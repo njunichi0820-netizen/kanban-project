@@ -1,8 +1,8 @@
 export const COLUMNS = [
-  { id: 'idea', title: 'Inbox', desc: '気になること全部ここへ', color: 'bg-yellow-500', gradient: 'from-yellow-400 to-amber-500', lightBg: 'bg-yellow-50', lightText: 'text-yellow-600', ring: 'ring-yellow-200', icon: 'Lightbulb' },
-  { id: 'todo', title: 'Next Action', desc: '次にやる具体的な行動', color: 'bg-purple-500', gradient: 'from-purple-400 to-violet-500', lightBg: 'bg-purple-50', lightText: 'text-purple-600', ring: 'ring-purple-200', icon: 'ClipboardList' },
-  { id: 'doing', title: 'Focus', desc: '今集中している作業', color: 'bg-blue-500', gradient: 'from-blue-400 to-blue-600', lightBg: 'bg-blue-50', lightText: 'text-blue-600', ring: 'ring-blue-200', icon: 'Zap' },
-  { id: 'done', title: 'Done', desc: '完了した成果', color: 'bg-emerald-500', gradient: 'from-emerald-400 to-teal-500', lightBg: 'bg-emerald-50', lightText: 'text-emerald-600', ring: 'ring-emerald-200', icon: 'PartyPopper' },
+  { id: 'idea', title: 'アイデア', desc: '気になること全部ここへ', color: 'bg-yellow-500', gradient: 'from-yellow-400 to-amber-500', lightBg: 'bg-yellow-50', lightText: 'text-yellow-600', ring: 'ring-yellow-200', icon: 'Lightbulb' },
+  { id: 'todo', title: '未着手', desc: '次にやる具体的な行動', color: 'bg-purple-500', gradient: 'from-purple-400 to-violet-500', lightBg: 'bg-purple-50', lightText: 'text-purple-600', ring: 'ring-purple-200', icon: 'ClipboardList' },
+  { id: 'doing', title: '実行中', desc: '今集中している作業', color: 'bg-blue-500', gradient: 'from-blue-400 to-blue-600', lightBg: 'bg-blue-50', lightText: 'text-blue-600', ring: 'ring-blue-200', icon: 'Zap' },
+  { id: 'done', title: '完了', desc: '完了した成果', color: 'bg-emerald-500', gradient: 'from-emerald-400 to-teal-500', lightBg: 'bg-emerald-50', lightText: 'text-emerald-600', ring: 'ring-emerald-200', icon: 'PartyPopper' },
 ];
 
 export const GTD_DETAILS = {

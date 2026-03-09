@@ -58,7 +58,7 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim()) return;
-    onSave({
+    const saved = {
       id: task?.id || crypto.randomUUID(),
       title: title.trim(),
       description: description.trim(),
@@ -69,7 +69,9 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
       subtasks: task?.subtasks || [],
       createdAt: task?.createdAt || Date.now(),
       updatedAt: Date.now(),
-    });
+    };
+    if (task?.aiAdvice) saved.aiAdvice = task.aiAdvice;
+    onSave(saved);
   };
 
   return (

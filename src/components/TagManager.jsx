@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { X, Plus, Palette } from 'lucide-react';
 
 const PRESET_COLORS = [
-  '#6366f1', '#3b82f6', '#06b6d4', '#10b981', '#14b8a6',
-  '#f59e0b', '#f97316', '#ef4444', '#ec4899', '#8b5cf6',
-  '#64748b', '#84cc16',
+  '#6366f1', '#3b82f6', '#0ea5e9', '#06b6d4', '#14b8a6',
+  '#10b981', '#22c55e', '#84cc16', '#a3e635', '#facc15',
+  '#f59e0b', '#fb923c', '#f97316', '#ef4444', '#e11d48',
+  '#ec4899', '#d946ef', '#8b5cf6', '#7c3aed', '#64748b',
 ];
 
 export default function TagManager({ tags, onUpdateTags, onClose }) {
