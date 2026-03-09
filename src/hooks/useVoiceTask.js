@@ -159,12 +159,13 @@ export function useVoiceTask() {
       const text = finalTranscriptRef.current;
       if (text.trim()) {
         setTranscript(text);
-        parseWithGemini(text);
+        // Don't auto-parse - wait for user confirmation
+        setStatus('idle');
       } else {
         setStatus('idle');
       }
     }
-  }, [status, parseWithGemini]);
+  }, [status]);
 
   const reset = useCallback(() => {
     if (recognitionRef.current) {
@@ -179,5 +180,5 @@ export function useVoiceTask() {
     setErrorMessage('');
   }, []);
 
-  return { status, transcript, interimText, parsedTasks, setParsedTasks, errorMessage, startListening, stopListening, reset };
+  return { status, transcript, interimText, parsedTasks, setParsedTasks, errorMessage, startListening, stopListening, reset, parseWithGemini };
 }

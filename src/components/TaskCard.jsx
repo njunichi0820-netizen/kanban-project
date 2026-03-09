@@ -19,6 +19,7 @@ export default function TaskCard({ task, columnId, isExpanded, onToggleExpand, o
   const [editingSubIdx, setEditingSubIdx] = useState(null);
   const [editingSubText, setEditingSubText] = useState('');
   const [showAdvice, setShowAdvice] = useState(false);
+  const [adviceOpen, setAdviceOpen] = useState(true);
   const { generateAdvice, loading: adviceLoading, hasApiKey } = useAIAdvice();
   const {
     attributes,
@@ -302,64 +303,83 @@ export default function TaskCard({ task, columnId, isExpanded, onToggleExpand, o
                 </div>
               )}
               {task.aiAdvice && (
-                <div className="bg-violet-50/50 rounded-xl p-3 space-y-2 border border-violet-100">
-                  <div className="flex items-center gap-1.5 mb-1">
+                <div className="bg-violet-50/50 rounded-xl border border-violet-100 overflow-hidden">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setAdviceOpen(v => !v); }}
+                    className="flex items-center gap-1.5 w-full px-3 py-2 hover:bg-violet-50 transition-colors"
+                  >
+                    {adviceOpen ? <ChevronDown size={12} className="text-violet-400" /> : <ChevronRight size={12} className="text-violet-400" />}
                     <Sparkles size={12} className="text-violet-500" />
                     <span className="text-[11px] font-bold text-violet-600">AIアドバイス</span>
-                    <button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        try {
-                          const advice = await generateAdvice(task);
-                          onUpdateTask?.({ ...task, aiAdvice: advice });
-                        } catch {}
-                      }}
-                      disabled={adviceLoading}
-                      className="ml-auto text-[10px] text-violet-400 hover:text-violet-600 font-semibold"
-                    >
-                      {adviceLoading ? '更新中...' : '再取得'}
-                    </button>
-                  </div>
-                  {task.aiAdvice.specificity && (
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400">具体性</p>
-                      <p className="text-[11px] text-gray-600 leading-relaxed">{task.aiAdvice.specificity}</p>
+                    <div className="ml-auto flex items-center gap-2">
+                      <span
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const advice = await generateAdvice(task);
+                            onUpdateTask?.({ ...task, aiAdvice: advice });
+                          } catch {}
+                        }}
+                        className="text-[10px] text-violet-400 hover:text-violet-600 font-semibold"
+                      >
+                        {adviceLoading ? '更新中...' : '再取得'}
+                      </span>
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUpdateTask?.({ ...task, aiAdvice: undefined });
+                          setShowAdvice(false);
+                        }}
+                        className="text-[10px] text-gray-400 hover:text-red-500 font-semibold"
+                      >
+                        削除
+                      </span>
                     </div>
-                  )}
-                  {task.aiAdvice.subtasks?.length > 0 && (
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400">WBS分解</p>
-                      <ul className="space-y-0.5">
-                        {task.aiAdvice.subtasks.map((s, i) => (
-                          <li key={i} className="text-[11px] text-gray-600 flex items-start gap-1">
-                            <span className="text-violet-400 shrink-0">•</span>
-                            {s}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {task.aiAdvice.priority && (
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400">優先度・見積もり</p>
-                      <p className="text-[11px] text-gray-600">{task.aiAdvice.priority}</p>
-                    </div>
-                  )}
-                  {task.aiAdvice.risks && (
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400">リスク</p>
-                      <p className="text-[11px] text-gray-600">{task.aiAdvice.risks}</p>
-                    </div>
-                  )}
-                  {task.aiAdvice.firstStep && (
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400">最初の一歩</p>
-                      <p className="text-[11px] text-gray-600 font-semibold">{task.aiAdvice.firstStep}</p>
-                    </div>
-                  )}
-                  {task.aiAdvice.motivation && (
-                    <div className="bg-gradient-to-r from-violet-100 to-pink-100 rounded-lg px-3 py-2 mt-1">
-                      <p className="text-[11px] text-violet-700 font-semibold">{task.aiAdvice.motivation}</p>
+                  </button>
+                  {adviceOpen && (
+                    <div className="px-3 pb-3 space-y-2">
+                      {task.aiAdvice.specificity && (
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400">具体性</p>
+                          <p className="text-[11px] text-gray-600 leading-relaxed">{task.aiAdvice.specificity}</p>
+                        </div>
+                      )}
+                      {task.aiAdvice.subtasks?.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400">WBS分解</p>
+                          <ul className="space-y-0.5">
+                            {task.aiAdvice.subtasks.map((s, i) => (
+                              <li key={i} className="text-[11px] text-gray-600 flex items-start gap-1">
+                                <span className="text-violet-400 shrink-0">•</span>
+                                {s}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {task.aiAdvice.priority && (
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400">優先度・見積もり</p>
+                          <p className="text-[11px] text-gray-600">{task.aiAdvice.priority}</p>
+                        </div>
+                      )}
+                      {task.aiAdvice.risks && (
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400">リスク</p>
+                          <p className="text-[11px] text-gray-600">{task.aiAdvice.risks}</p>
+                        </div>
+                      )}
+                      {task.aiAdvice.firstStep && (
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400">最初の一歩</p>
+                          <p className="text-[11px] text-gray-600 font-semibold">{task.aiAdvice.firstStep}</p>
+                        </div>
+                      )}
+                      {task.aiAdvice.motivation && (
+                        <div className="bg-gradient-to-r from-violet-100 to-pink-100 rounded-lg px-3 py-2 mt-1">
+                          <p className="text-[11px] text-violet-700 font-semibold">{task.aiAdvice.motivation}</p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
