@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 const STORAGE_KEY = 'kanban-gemini-key';
 
 const PROMPT_TEMPLATE = (text) => `あなたはタスク管理アシスタントです。以下の音声入力テキストからタスクを抽出してください。
@@ -19,9 +19,11 @@ const PROMPT_TEMPLATE = (text) => `あなたはタスク管理アシスタント
 export function useVoiceTask() {
   const [status, setStatus] = useState('idle'); // idle | listening | processing | done | error
   const [transcript, setTranscript] = useState('');
+  const [interimText, setInterimText] = useState('');
   const [parsedTasks, setParsedTasks] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const recognitionRef = useRef(null);
+  const finalTranscriptRef = useRef('');
 
   const parseWithGemini = useCallback(async (text) => {
     const apiKey = localStorage.getItem(STORAGE_KEY);
@@ -48,7 +50,11 @@ export function useVoiceTask() {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error?.message || `API Error: ${res.status}`);
+        const msg = err.error?.message || `API Error: ${res.status}`;
+        if (msg.includes('quota') || msg.includes('Quota')) {
+          throw new Error('APIの利用制限に達しました。しばらく待ってから再試行するか、APIキーの課金プランをご確認ください。');
+        }
+        throw new Error(msg);
       }
 
       const data = await res.json();
@@ -88,51 +94,90 @@ export function useVoiceTask() {
       return;
     }
 
+    // Stop any existing recognition
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+
     const recognition = new SpeechRecognition();
     recognition.lang = 'ja-JP';
-    recognition.interimResults = false;
-    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.continuous = true;
+
+    finalTranscriptRef.current = '';
 
     recognition.onresult = (event) => {
-      const text = event.results[0][0].transcript;
-      setTranscript(text);
-      parseWithGemini(text);
+      let interim = '';
+      let final = '';
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          final += result[0].transcript;
+        } else {
+          interim += result[0].transcript;
+        }
+      }
+      finalTranscriptRef.current = final;
+      setTranscript(final);
+      setInterimText(interim);
     };
 
     recognition.onerror = (event) => {
+      if (event.error === 'no-speech') {
+        // no-speech is not a real error, just no input detected
+        return;
+      }
       setStatus('error');
       setErrorMessage(`音声認識エラー: ${event.error}`);
     };
 
     recognition.onend = () => {
+      // If continuous mode ended unexpectedly while still listening, restart
+      if (recognitionRef.current && status === 'listening') {
+        // Don't restart - user will manually control
+      }
       recognitionRef.current = null;
     };
 
     recognitionRef.current = recognition;
     setStatus('listening');
     setTranscript('');
+    setInterimText('');
     setParsedTasks([]);
     setErrorMessage('');
     recognition.start();
-  }, [parseWithGemini]);
+  }, [parseWithGemini, status]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
       recognitionRef.current = null;
     }
+    setInterimText('');
     if (status === 'listening') {
-      setStatus('idle');
+      const text = finalTranscriptRef.current;
+      if (text.trim()) {
+        setTranscript(text);
+        parseWithGemini(text);
+      } else {
+        setStatus('idle');
+      }
     }
-  }, [status]);
+  }, [status, parseWithGemini]);
 
   const reset = useCallback(() => {
-    stopListening();
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    finalTranscriptRef.current = '';
     setStatus('idle');
     setTranscript('');
+    setInterimText('');
     setParsedTasks([]);
     setErrorMessage('');
-  }, [stopListening]);
+  }, []);
 
-  return { status, transcript, parsedTasks, setParsedTasks, errorMessage, startListening, stopListening, reset };
+  return { status, transcript, interimText, parsedTasks, setParsedTasks, errorMessage, startListening, stopListening, reset };
 }

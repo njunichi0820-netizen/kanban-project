@@ -4,7 +4,7 @@ import { Mic, MicOff, Loader2, X, Trash2, Sparkles, AlertTriangle, Square } from
 const COLUMN_LABELS = { idea: 'アイデア', todo: '未着手', doing: '実行中' };
 
 export default function VoiceInput({ voice, onAddTasks, size = 20 }) {
-  const { status, transcript, parsedTasks, setParsedTasks, errorMessage, startListening, stopListening, reset } = voice;
+  const { status, transcript, interimText, parsedTasks, setParsedTasks, errorMessage, startListening, stopListening, reset } = voice;
   const [modalOpen, setModalOpen] = useState(false);
 
   const handleOpen = () => {
@@ -133,8 +133,19 @@ export default function VoiceInput({ voice, onAddTasks, size = 20 }) {
                 </p>
               )}
 
-              {/* Transcript */}
-              {transcript && (
+              {/* Live transcript during listening */}
+              {status === 'listening' && (transcript || interimText) && (
+                <div className="bg-gray-50 rounded-xl px-4 py-3">
+                  <p className="text-[10px] font-bold text-gray-400 mb-1">認識中...</p>
+                  <p className="text-sm text-gray-700">
+                    {transcript}
+                    {interimText && <span className="text-gray-400">{interimText}</span>}
+                  </p>
+                </div>
+              )}
+
+              {/* Final transcript (after listening) */}
+              {status !== 'listening' && transcript && (
                 <div className="bg-gray-50 rounded-xl px-4 py-3">
                   <p className="text-[10px] font-bold text-gray-400 mb-1">認識テキスト</p>
                   <p className="text-sm text-gray-700">{transcript}</p>

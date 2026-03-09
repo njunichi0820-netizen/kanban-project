@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 const STORAGE_KEY = 'kanban-gemini-key';
 
 const buildPrompt = (task) => `あなたはタスク管理のプロフェッショナルアドバイザーです。以下のタスクについて分析し、6つの観点からアドバイスをJSON形式で返してください。
@@ -51,7 +51,11 @@ export function useAIAdvice() {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error?.message || `API Error: ${res.status}`);
+        const msg = err.error?.message || `API Error: ${res.status}`;
+        if (msg.includes('quota') || msg.includes('Quota')) {
+          throw new Error('APIの利用制限に達しました。しばらく待ってから再試行するか、APIキーの課金プランをご確認ください。');
+        }
+        throw new Error(msg);
       }
 
       const data = await res.json();
