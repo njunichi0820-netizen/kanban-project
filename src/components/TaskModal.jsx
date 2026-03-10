@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Flame, Plus, Trash2, ExternalLink } from 'lucide-react';
+import { X, Flame, Plus, Trash2, ExternalLink, Map } from 'lucide-react';
 import { COLUMNS } from '../constants';
+import { TRL_LEVELS, PERSPECTIVES_5ME, CONSTRAINT_CATEGORIES } from '../constants/mapConstants';
+import TreeSelector from './KnowledgeMap/TreeSelector';
+import { useMapData } from '../hooks/useMapData';
 
 export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSave, onClose }) {
   const [title, setTitle] = useState('');
@@ -11,7 +14,14 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
   const [links, setLinks] = useState([]);
   const [newLinkUrl, setNewLinkUrl] = useState('');
   const [newLinkLabel, setNewLinkLabel] = useState('');
+  const [mapNodeId, setMapNodeId] = useState(null);
+  const [perspective5ME, setPerspective5ME] = useState(null);
+  const [verificationLevel, setVerificationLevel] = useState(null);
+  const [constraints, setConstraints] = useState([]);
+  const [comments, setComments] = useState('');
+  const [showMapSection, setShowMapSection] = useState(false);
   const titleRef = useRef(null);
+  const { mapNodes } = useMapData();
 
   useEffect(() => {
     if (isOpen) {
@@ -22,6 +32,12 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
         setSelectedTags(task.tags || []);
         setPriority(task.priority || false);
         setLinks(task.links || []);
+        setMapNodeId(task.mapNodeId || null);
+        setPerspective5ME(task.perspective5ME || null);
+        setVerificationLevel(task.verificationLevel || null);
+        setConstraints(task.constraints || []);
+        setComments(task.comments || '');
+        setShowMapSection(!!(task.mapNodeId || task.perspective5ME || task.verificationLevel));
       } else {
         setTitle('');
         setDescription('');
@@ -29,6 +45,19 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
         setSelectedTags([]);
         setPriority(false);
         setLinks([]);
+        // Check for pending map node from MapView
+        const pendingNodeId = window.__pendingMapNodeId;
+        const pendingTreePath = window.__pendingMapTreePath;
+        setMapNodeId(pendingNodeId || null);
+        setPerspective5ME(null);
+        setVerificationLevel(null);
+        setConstraints([]);
+        setComments('');
+        setShowMapSection(!!pendingNodeId);
+        if (pendingNodeId) {
+          window.__pendingMapNodeId = null;
+          window.__pendingMapTreePath = null;
+        }
       }
       setNewLinkUrl('');
       setNewLinkLabel('');
@@ -55,6 +84,12 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
     setLinks(prev => prev.filter((_, i) => i !== idx));
   };
 
+  const toggleConstraint = (cId) => {
+    setConstraints(prev =>
+      prev.includes(cId) ? prev.filter(x => x !== cId) : [...prev, cId]
+    );
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -66,6 +101,11 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
       priority,
       column,
       links,
+      mapNodeId: mapNodeId || null,
+      perspective5ME: perspective5ME || null,
+      verificationLevel: verificationLevel || null,
+      constraints,
+      comments: comments.trim(),
       subtasks: task?.subtasks || [],
       createdAt: task?.createdAt || Date.now(),
       updatedAt: Date.now(),
@@ -73,6 +113,8 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
     if (task?.aiAdvice) saved.aiAdvice = task.aiAdvice;
     onSave(saved);
   };
+
+  const linkedNode = mapNodeId ? mapNodes.find(n => n.id === mapNodeId) : null;
 
   return (
     <div
@@ -203,6 +245,100 @@ export default function TaskModal({ isOpen, task, defaultColumn, tags = [], onSa
               <Flame size={14} />
               {priority ? '重要' : '通常'}
             </button>
+          </div>
+
+          {/* Map linkage section */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowMapSection(v => !v)}
+              className="flex items-center gap-1.5 text-xs font-bold text-indigo-500 hover:text-indigo-700 transition-colors"
+            >
+              <Map size={12} />
+              {showMapSection ? 'マップ紐付けを閉じる' : 'マップに紐付け'}
+            </button>
+
+            {showMapSection && (
+              <div className="mt-2 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-3">
+                {/* Tree position selector */}
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wide">ツリー位置</label>
+                  <TreeSelector mapNodes={mapNodes} value={mapNodeId} onChange={setMapNodeId} />
+                  {linkedNode && (
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <div className="w-2 h-2 rounded-full" style={{ background: linkedNode.color }} />
+                      <span className="text-[10px] text-gray-500">{linkedNode.name}</span>
+                      <button type="button" onClick={() => setMapNodeId(null)} className="text-[10px] text-red-400 hover:text-red-600 ml-auto">解除</button>
+                    </div>
+                  )}
+                </div>
+
+                {/* 5M+E */}
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wide">5M+E</label>
+                  <select
+                    value={perspective5ME || ''}
+                    onChange={(e) => setPerspective5ME(e.target.value || null)}
+                    className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  >
+                    <option value="">未設定</option>
+                    {PERSPECTIVES_5ME.map(p => (
+                      <option key={p.id} value={p.id}>{p.label} ({p.desc})</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* TRL */}
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wide">TRL レベル</label>
+                  <select
+                    value={verificationLevel || ''}
+                    onChange={(e) => setVerificationLevel(e.target.value ? Number(e.target.value) : null)}
+                    className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  >
+                    <option value="">未設定</option>
+                    {TRL_LEVELS.map(l => (
+                      <option key={l.level} value={l.level}>Lv{l.level}: {l.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Constraints */}
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wide">与件</label>
+                  <div className="flex flex-wrap gap-1">
+                    {CONSTRAINT_CATEGORIES.map(c => {
+                      const active = constraints.includes(c.id);
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => toggleConstraint(c.id)}
+                          className={`text-[10px] font-semibold px-2 py-1 rounded-full transition-colors ${
+                            active ? 'text-white' : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'
+                          }`}
+                          style={active ? { backgroundColor: c.color } : {}}
+                        >
+                          {c.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Comments */}
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wide">コメント</label>
+                  <textarea
+                    value={comments}
+                    onChange={(e) => setComments(e.target.value)}
+                    rows={2}
+                    placeholder="コメント（任意）"
+                    className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Column */}

@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SPR テーマ企画連鎖 ナレッジマップ</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=Noto+Sans+JP:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+/* ── RESET ── */
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#F6F8FB;
+  --bg2:#EEF1F6;
+  --surf:#FFFFFF;
+  --surf2:#FAFBFD;
+  --b1:#E4E8F0;
+  --b2:#EEF1F6;
+  --t1:#1A1F36;
+  --t2:#6B7694;
+  --t3:#9BA3B8;
+  --accent:#4F6CF7;
+  --accent2:#6C7FF7;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --sh-sm:0 1px 3px rgba(15,23,42,.04),0 1px 2px rgba(15,23,42,.03);
+  --sh-md:0 4px 16px rgba(15,23,42,.06),0 2px 6px rgba(15,23,42,.03);
+  --sh-xl:0 20px 50px rgba(15,23,42,.08),0 8px 20px rgba(15,23,42,.04);
+  --glow:0 0 40px rgba(79,108,247,.08);
+}
+body{font-family:'DM Sans','Noto Sans JP',sans-serif;background:var(--bg);color:var(--t1);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* ── HEADER ── */
+#hd{
+  height:60px;flex-shrink:0;
+  background:#FFFFFF;
+  color:var(--t1);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:500;
+  border-bottom:1px solid var(--b1);
+  box-shadow:0 1px 8px rgba(15,23,42,.04);
+}
+#hd-logo{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,#4F6CF7,#7C8CF8);
+  display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;
+  box-shadow:0 2px 10px rgba(79,108,247,.2);
+}
+#hd-title{font-size:15px;font-weight:700;letter-spacing:-.2px;white-space:nowrap;color:var(--t1);}
+#hd-tabs{display:flex;gap:3px;margin-left:auto;background:var(--bg);border-radius:10px;padding:3px;}
+.tb{
+  padding:7px 16px;border-radius:8px;border:none;font-family:inherit;font-size:12px;font-weight:600;
+  color:var(--t3);background:transparent;cursor:pointer;transition:all .2s var(--ease);letter-spacing:.2px;
+}
+.tb.on{background:#FFFFFF;color:var(--accent);box-shadow:var(--sh-sm);}
+.tb:not(.on):hover{background:rgba(79,108,247,.04);color:var(--t2);}
+#hd-srch{
+  margin-left:12px;height:34px;width:200px;
+  background:var(--bg);border:1px solid var(--b1);
+  border-radius:100px;padding:0 14px 0 36px;font-family:inherit;font-size:12px;color:var(--t1);outline:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' fill='%239BA3B8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398l3.85 3.85a1 1 0 0 0 1.414-1.414l-3.85-3.85zm-5.242 1.156a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:13px center;transition:all .25s;
+}
+#hd-srch::placeholder{color:var(--t3);}
+#hd-srch:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(79,108,247,.08);}
+
+/* ── MAIN ── */
+#main{flex:1;overflow:hidden;position:relative;}
+
+/* ══════════════════════════════════════════
+   OVERVIEW
+══════════════════════════════════════════ */
+#ov{position:absolute;inset:0;overflow-y:auto;padding:36px 32px;background:var(--bg);}
+#ov.hide{display:none;}
+#ov::-webkit-scrollbar{width:6px;}
+#ov::-webkit-scrollbar-track{background:transparent;}
+#ov::-webkit-scrollbar-thumb{background:var(--b1);border-radius:100px;}
+
+.ov-hdr{max-width:1160px;margin:0 auto 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.ov-hdr-left{display:flex;align-items:center;gap:16px;}
+.ov-hdr-logo{width:42px;height:42px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center;}
+.ov-hdr-logo svg{width:22px;height:22px;fill:#fff;}
+.ov-hdr h2{font-size:20px;font-weight:800;color:var(--t1);letter-spacing:-.4px;}
+.ov-hdr-sub{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t3);}
+.ov-hdr-sub .sep{color:var(--b1);}
+.ov-hdr-right{display:flex;align-items:center;gap:8px;}
+#ov-stat{font-size:10.5px;font-weight:700;color:var(--accent);background:rgba(79,108,247,.06);border:1px solid rgba(79,108,247,.12);padding:5px 13px;border-radius:100px;white-space:nowrap;letter-spacing:.3px;}
+
+/* overview toggle */
+.ov-toggle{display:flex;gap:0;background:#fff;border:1px solid var(--b1);border-radius:10px;padding:3px;}
+.ov-tb{padding:6px 14px;border-radius:8px;border:none;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;color:var(--t3);background:transparent;transition:all .18s;white-space:nowrap;}
+.ov-tb.on{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(79,108,247,.2);}
+.ov-tb:not(.on):hover{background:var(--bg);color:var(--t2);}
+
+#ov-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1160px;margin:0 auto;}
+@media(max-width:1020px){#ov-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:640px){#ov-grid{grid-template-columns:1fr;}}
+
+/* ── Card (matching reference images) ── */
+.c-card{
+  background:#FFFFFF;border:1px solid var(--b1);border-radius:14px;
+  padding:0;cursor:pointer;display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+  box-shadow:0 2px 8px rgba(15,23,42,.04),0 1px 2px rgba(15,23,42,.02);
+  transition:transform .26s var(--ease), box-shadow .26s var(--ease), border-color .2s;
+  will-change:transform;
+}
+.c-card:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(15,23,42,.08),0 4px 12px rgba(15,23,42,.04);border-color:rgba(79,108,247,.12);}
+/* colored left accent */
+.c-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:4px;border-radius:14px 0 0 14px;z-index:1;}
+/* semi-circle decoration top-right */
+.c-card::after{content:'';position:absolute;top:-20px;right:-20px;width:56px;height:56px;border-radius:50%;opacity:.10;pointer-events:none;}
+
+.c-inner{padding:20px 20px 16px 22px;display:flex;flex-direction:column;gap:14px;}
+.c-ico-wrap{display:flex;align-items:center;gap:10px;}
+.c-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.c-ico svg{width:20px;height:20px;}
+.c-title{font-size:15px;font-weight:700;color:var(--t1);line-height:1.3;letter-spacing:-.2px;}
+.c-desc{font-size:11px;color:var(--t2);line-height:1.65;margin-top:2px;}
+
+.c-incl-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.c-incl-lbl{font-size:9.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--t3);}
+.c-incl-cnt{font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+
+.c-prev{display:flex;flex-direction:column;gap:4px;}
+.c-pi{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:var(--bg);border:1px solid var(--b2);}
+.c-pi-ico{width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.c-pi-ico svg{width:10px;height:10px;opacity:.6;}
+.c-pi-name{font-size:11.5px;font-weight:500;color:var(--t1);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.c-more{font-size:10.5px;color:var(--t3);text-align:center;padding:4px 0;}
+
+.c-foot{display:flex;align-items:center;gap:5px;padding:0 22px 14px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;}
+.c-foot svg{width:12px;height:12px;fill:currentColor;}
+.c-foot:hover{color:#3B54D9;}
+
+/* ══════════════════════════════════════════
+   ZOOM OVERLAY (matching reference image 1)
+══════════════════════════════════════════ */
+#zo{
+  position:fixed;z-index:400;background:#FFFFFF;border-radius:14px;
+  box-shadow:var(--sh-xl);overflow:hidden;opacity:0;pointer-events:none;
+  transition:top .4s var(--ease),left .4s var(--ease),width .4s var(--ease),height .4s var(--ease),border-radius .4s var(--ease),opacity .22s var(--ease);
+}
+#zo.open{opacity:1;pointer-events:all;}
+#zo-inner{height:100%;display:flex;flex-direction:column;overflow:hidden;}
+
+/* Solid colored banner header */
+#zo-hd{padding:28px 32px 24px;flex-shrink:0;display:flex;align-items:center;gap:16px;position:relative;}
+#zo-hd-ico{width:42px;height:42px;border-radius:11px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+#zo-hd-ico svg{width:22px;height:22px;fill:#fff;}
+#zo-hd-text{flex:1;}
+#zo-hd-title{font-size:18px;font-weight:700;color:#fff;letter-spacing:-.3px;}
+#zo-hd-desc{font-size:12px;color:rgba(255,255,255,.75);margin-top:3px;line-height:1.5;}
+#zo-back{
+  position:absolute;right:28px;top:50%;transform:translateY(-50%);
+  width:40px;height:40px;border-radius:50%;border:none;
+  background:rgba(0,0,0,.15);color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  transition:background .15s;flex-shrink:0;
+}
+#zo-back:hover{background:rgba(0,0,0,.25);}
+
+#zo-body{flex:1;overflow-y:auto;padding:24px 32px 32px;background:#fff;}
+#zo-body::-webkit-scrollbar{width:5px;}
+#zo-body::-webkit-scrollbar-track{background:transparent;}
+#zo-body::-webkit-scrollbar-thumb{background:var(--b1);border-radius:100px;}
+
+/* file section header */
+.zo-fhdr{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+.zo-fhdr-ico{color:var(--t3);}
+.zo-fhdr-ico svg{width:16px;height:16px;fill:var(--t3);}
+.zo-fhdr-lbl{font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--t3);}
+.zo-fhdr-cnt{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-left:auto;}
+
+/* sub filter pills */
+.zo-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;}
+.zo-pill{font-size:10.5px;font-weight:600;padding:5px 13px;border-radius:100px;border:1px solid var(--b1);background:transparent;cursor:pointer;transition:all .18s;color:var(--t3);}
+.zo-pill:hover:not(.on){background:var(--bg);color:var(--t2);}
+.zo-pill.on{border-color:transparent;color:#fff;}
+
+/* file card */
+.zo-fc{
+  display:flex;align-items:flex-start;gap:14px;
+  padding:16px 18px;border-radius:12px;background:#fff;
+  border:1px solid var(--b2);margin-bottom:8px;
+  transition:border-color .15s,box-shadow .15s;position:relative;
+}
+.zo-fc:hover{border-color:var(--b1);box-shadow:var(--sh-md);}
+.zo-fc:hover .zo-fc-link{opacity:1;}
+.zo-fc-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.zo-fc-ico svg{width:18px;height:18px;}
+.zo-fc-body{flex:1;min-width:0;}
+.zo-fc-name{font-size:13.5px;font-weight:600;color:var(--t1);margin-bottom:3px;}
+.zo-fc-desc{font-size:11.5px;color:var(--t2);line-height:1.6;}
+.zo-fc-meta{display:flex;gap:12px;margin-top:6px;font-size:10.5px;color:var(--t3);}
+.zo-fc-link{position:absolute;right:16px;top:50%;transform:translateY(-50%);opacity:0;transition:opacity .15s;color:var(--t3);}
+.zo-fc-link svg{width:18px;height:18px;fill:var(--t3);}
+
+/* sub-section divider */
+.zo-sec{margin-bottom:24px;}
+.zo-sec-hd{display:flex;align-items:center;gap:8px;padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid var(--b2);}
+.zo-sec-name{font-size:12.5px;font-weight:700;color:var(--t1);}
+.zo-sec-cnt{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;}
+.zo-sec-tag{font-size:10px;padding:2px 8px;border-radius:100px;background:var(--bg);border:1px solid var(--b1);color:var(--t3);}
+
+/* ══════════════════════════════════════════
+   CIRCLE MAP
+══════════════════════════════════════════ */
+#map-wrap{position:absolute;inset:0;display:none;}
+#map-wrap.on{display:flex;}
+#sb{
+  width:300px;flex-shrink:0;background:#FFFFFF;
+  border-right:1px solid var(--b1);display:flex;flex-direction:column;overflow:hidden;
+}
+#sb-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--t3);text-align:center;padding:32px;gap:12px;}
+#sb-ei{font-size:40px;opacity:.2;}
+#sb-empty p{font-size:13px;line-height:1.8;color:var(--t3);}
+#sb-det{display:none;flex-direction:column;flex:1;overflow:hidden;}
+#sb-det.on{display:flex;}
+#sb-top{padding:20px 22px 16px;flex-shrink:0;}
+#sb-type{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--t3);margin-bottom:6px;}
+#sb-bdg{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;margin-bottom:8px;}
+#sb-name{font-size:18px;font-weight:700;color:var(--t1);line-height:1.3;letter-spacing:-.3px;}
+.sdiv{height:1px;background:var(--b2);margin:0 22px;}
+#sb-body{flex:1;overflow-y:auto;padding:16px 22px 22px;}
+#sb-body::-webkit-scrollbar{width:4px;}
+#sb-body::-webkit-scrollbar-track{background:transparent;}
+#sb-body::-webkit-scrollbar-thumb{background:var(--b1);border-radius:100px;}
+.ss{margin-bottom:18px;}
+.ss-t{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--t3);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.ss-t::before{content:'';width:3px;height:10px;border-radius:2px;}
+.ss-d{font-size:13px;line-height:1.85;color:var(--t2);}
+.tr{display:flex;flex-wrap:wrap;gap:4px;}
+.tg{font-size:11px;padding:3px 9px;border-radius:100px;background:var(--bg);color:var(--t2);border:1px solid var(--b1);}
+.chr{display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:9px;background:var(--bg);font-size:13px;cursor:pointer;transition:all .15s;margin-bottom:4px;border:1px solid transparent;}
+.chr:hover{background:rgba(79,108,247,.04);border-color:rgba(79,108,247,.1);}
+.chd{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.mr{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b2);font-size:13px;}
+.mr:last-child{border-bottom:none;}
+.mk{color:var(--t3);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.mv{color:var(--t1);font-weight:500;}
+.cmtx{
+  width:100%;font-family:inherit;font-size:13px;
+  border:1px solid var(--b1);border-radius:9px;padding:9px 13px;
+  color:var(--t1);outline:none;resize:none;
+  background:#FFFFFF;
+}
+.cmtx:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,108,247,.06);}
+
+#map-cv{flex:1;position:relative;background:#FAFBFD;}
+/* subtle dot grid */
+#map-cv::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(circle at 1px 1px,rgba(79,108,247,.04) 1px,transparent 0);
+  background-size:32px 32px;
+}
+#map-cv svg{width:100%;height:100%;cursor:grab;position:relative;z-index:1;}
+#map-cv svg.drag{cursor:grabbing;}
+.lbl{font-family:'DM Sans','Noto Sans JP',sans-serif;pointer-events:none;}
+#floats{position:absolute;bottom:24px;right:24px;display:flex;flex-direction:column;gap:6px;z-index:50;}
+.fb{
+  width:38px;height:38px;border-radius:10px;border:1px solid var(--b1);
+  background:#FFFFFF;box-shadow:var(--sh-sm);cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;color:var(--t2);transition:all .18s;
+}
+.fb:hover{background:var(--bg);color:var(--accent);border-color:rgba(79,108,247,.2);}
+#bc{
+  position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#FFFFFF;box-shadow:var(--sh-sm);border-radius:100px;
+  padding:6px 18px;font-size:11px;font-weight:600;color:var(--t3);white-space:nowrap;
+  pointer-events:none;border:1px solid var(--b1);letter-spacing:.2px;z-index:50;
+}
+#tip{
+  position:fixed;
+  background:rgba(26,31,54,.92);backdrop-filter:blur(8px);
+  color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:500;
+  pointer-events:none;opacity:0;transition:opacity .12s;z-index:600;
+  box-shadow:var(--sh-md);
+}
+#leg{
+  position:absolute;bottom:24px;left:24px;
+  background:#FFFFFF;border:1px solid var(--b1);border-radius:12px;
+  padding:12px 16px;z-index:50;box-shadow:var(--sh-sm);
+}
+.lgt{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--t3);margin-bottom:8px;}
+.li{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--t2);margin-bottom:4px;}
+.ld{width:8px;height:8px;border-radius:50%;}
+
+/* ══════════════════════════════════════════
+   LIST / CHECK VIEWS
+══════════════════════════════════════════ */
+#lv,#cv2{position:absolute;inset:0;overflow-y:auto;padding:32px;background:var(--bg);display:none;}
+#lv.on,#cv2.on{display:block;}
+#lv::-webkit-scrollbar,#cv2::-webkit-scrollbar{width:6px;}
+#lv::-webkit-scrollbar-track,#cv2::-webkit-scrollbar-track{background:transparent;}
+#lv::-webkit-scrollbar-thumb,#cv2::-webkit-scrollbar-thumb{background:var(--b1);border-radius:100px;}
+
+.ltbl{max-width:940px;margin:0 auto;background:#FFFFFF;border-radius:14px;border:1px solid var(--b1);overflow:hidden;box-shadow:var(--sh-sm);}
+.ltbl table{width:100%;border-collapse:collapse;}
+.ltbl th{
+  padding:13px 18px;text-align:left;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.6px;color:var(--t3);
+  background:var(--bg);border-bottom:1px solid var(--b1);
+}
+.ltbl td{padding:11px 18px;font-size:13px;border-bottom:1px solid var(--b2);color:var(--t2);}
+.ltbl tr:last-child td{border-bottom:none;}
+.ltbl tr:hover td{background:rgba(79,108,247,.02);}
+.ll{color:var(--accent);font-weight:600;cursor:pointer;transition:color .15s;}
+.ll:hover{color:#3B54D9;text-decoration:underline;}
+.dbadge{font-size:10px;padding:3px 8px;border-radius:100px;font-weight:600;letter-spacing:.2px;}
+.ck-wrap{max-width:820px;margin:0 auto;}
+.ck-h{font-size:20px;font-weight:800;color:var(--t1);margin-bottom:4px;letter-spacing:-.4px;}
+.ck-sub{font-size:13px;color:var(--t2);margin-bottom:24px;}
+.ck-row{
+  background:#FFFFFF;border:1px solid var(--b1);border-radius:12px;
+  padding:16px 18px;margin-bottom:8px;display:flex;align-items:center;gap:14px;
+  box-shadow:var(--sh-sm);transition:all .18s;
+}
+.ck-row:hover{border-color:rgba(79,108,247,.12);box-shadow:var(--sh-md);}
+.ck-ico{font-size:22px;width:36px;text-align:center;flex-shrink:0;}
+.ck-lbl{font-size:13.5px;font-weight:700;color:var(--t1);flex:1;}
+.ck-sub2{font-size:11px;color:var(--t2);margin-top:2px;}
+.ck-st{font-size:11px;font-weight:700;padding:4px 12px;border-radius:100px;}
+.ok{background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;}
+.partial{background:#FFFBEB;color:#B45309;border:1px solid #FDE68A;}
+
+/* ── FOOTER ── */
+#ft{
+  background:#FFFFFF;border-top:1px solid var(--b1);height:32px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+  font-size:10px;color:var(--t3);font-family:'DM Sans',monospace;letter-spacing:.5px;
+}
+.ft-dot{width:6px;height:6px;border-radius:50%;background:#22C55E;display:inline-block;margin-right:5px;animation:pulse 2s infinite;box-shadow:0 0 6px rgba(34,197,94,.3);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* ── Level Toggle ── */
+#lv-toggle{
+  position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:60;
+  display:flex;align-items:center;gap:0;
+  background:#FFFFFF;border:1px solid var(--b1);border-radius:10px;
+  padding:3px;box-shadow:var(--sh-sm);
+}
+.lv-btn{
+  padding:7px 18px;border-radius:8px;border:none;font-family:inherit;
+  font-size:11.5px;font-weight:600;cursor:pointer;transition:all .2s var(--ease);
+  color:var(--t3);background:transparent;white-space:nowrap;letter-spacing:.1px;
+}
+.lv-btn.on{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(79,108,247,.25);}
+.lv-btn:not(.on):hover{background:var(--bg);color:var(--t2);}
+.lv-sep{width:1px;height:20px;background:var(--b1);flex-shrink:0;}
+
+/* ── Animations ── */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.c-card{animation:fadeInUp .5s var(--ease) both;}
+.c-card:nth-child(1){animation-delay:.05s;}
+.c-card:nth-child(2){animation-delay:.1s;}
+.c-card:nth-child(3){animation-delay:.15s;}
+.c-card:nth-child(4){animation-delay:.2s;}
+.c-card:nth-child(5){animation-delay:.25s;}
+.c-card:nth-child(6){animation-delay:.3s;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="hd">
+  <div id="hd-logo"><svg viewBox="0 0 24 24" width="18" height="18" fill="#fff"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg></div>
+  <div id="hd-title">SPR テーマ企画連鎖マップ</div>
+  <div id="hd-tabs">
+    <button class="tb on"  onclick="switchTab('ov')">概要</button>
+    <button class="tb"     onclick="switchTab('map')">サークルマップ</button>
+    <button class="tb"     onclick="switchTab('list')">リスト</button>
+    <button class="tb"     onclick="switchTab('check')">5M+E チェック</button>
+  </div>
+  <input id="hd-srch" placeholder="ノードを検索...">
+</div>
+
+<div id="main">
+
+  <!-- ① OVERVIEW -->
+  <div id="ov">
+    <div class="ov-hdr">
+      <div class="ov-hdr-left">
+        <div class="ov-hdr-logo"><svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg></div>
+        <div>
+          <h2>SPR テーマ企画連鎖</h2>
+          <div class="ov-hdr-sub">SharePoint Sync <span class="sep">›</span> Root Project Contents</div>
+        </div>
+      </div>
+      <div class="ov-hdr-right">
+        <div class="ov-toggle">
+          <button class="ov-tb on" id="ov-btn-upper" onclick="setOvMode('upper')">上位要件別</button>
+          <button class="ov-tb" id="ov-btn-req" onclick="setOvMode('req')">要件項目別</button>
+        </div>
+        <div id="ov-stat"></div>
+      </div>
+    </div>
+    <div id="ov-grid"></div>
+  </div>
+
+  <!-- ② ZOOM DETAIL OVERLAY -->
+  <div id="zo">
+    <div id="zo-inner">
+      <div id="zo-hd">
+        <div id="zo-hd-ico"></div>
+        <div id="zo-hd-text">
+          <div id="zo-hd-title"></div>
+          <div id="zo-hd-desc"></div>
+        </div>
+        <button id="zo-back" onclick="closeDetail()">←</button>
+      </div>
+      <div id="zo-body">
+        <div id="zo-pills" class="zo-pills"></div>
+        <div id="zo-fhdr-wrap" class="zo-fhdr">
+          <div class="zo-fhdr-ico"><svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></div>
+          <span class="zo-fhdr-lbl">Included Files</span>
+          <span class="zo-fhdr-cnt" id="zo-fcnt"></span>
+        </div>
+        <div id="zo-items"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ CIRCLE MAP -->
+  <div id="map-wrap">
+    <div id="sb">
+      <div id="sb-empty"><div id="sb-ei" style="font-size:28px;opacity:.12">⬤</div><p>マップ上の項目をクリックして<br>詳細を表示します</p></div>
+      <div id="sb-det">
+        <div id="sb-top">
+          <div id="sb-type"></div>
+          <div id="sb-bdg"></div>
+          <div id="sb-name"></div>
+        </div>
+        <div class="sdiv"></div>
+        <div id="sb-body"></div>
+      </div>
+    </div>
+    <div id="map-cv">
+      <svg id="sv"></svg>
+      <div id="lv-toggle">
+        <button class="lv-btn on" id="btn-lv1" onclick="setMapMode('full')">上位項目別（6階層）</button>
+        <div class="lv-sep"></div>
+        <button class="lv-btn" id="btn-lv2" onclick="setMapMode('skip')">QCDE分類別（5階層）</button>
+      </div>
+      <div id="floats">
+        <button class="fb" id="bzi">+</button>
+        <button class="fb" id="bzo">−</button>
+        <button class="fb" id="bzr" style="font-size:12px">⌂</button>
+      </div>
+      <div id="bc">Knowledge Hub</div>
+      <div id="tip"></div>
+      <div id="leg"><div class="lgt">カテゴリ</div><div id="litems"></div></div>
+    </div>
+  </div>
+
+  <!-- ④ LIST -->
+  <div id="lv"><div class="ltbl"><table>
+    <thead><tr><th>項目名</th><th>カテゴリ</th><th>サブカテゴリ</th><th>ステータス</th><th>最終更新</th></tr></thead>
+    <tbody id="lb"></tbody>
+  </table></div></div>
+
+  <!-- ⑤ CHECK -->
+  <div id="cv2"><div class="ck-wrap">
+    <div class="ck-h">🔍 網羅性チェック — 製造 5M+E 観点</div>
+    <div class="ck-sub">ナレッジデータを5M+E観点で自動分類・確認します</div>
+    <div id="ck-rows"></div>
+  </div></div>
+
+</div>
+
+<div id="ft">
+  <span>LOCAL FILE MODE</span>
+  <span><span class="ft-dot"></span>READY</span>
+</div>
+
+<script>
+/* ════════════════════════════════════════
+   DATA
+════════════════════════════════════════ */
+const CATS = [
+  {id:"溶接総投資守り切",title:"溶接総投資守り切り",icon:"📌",themeColor:"#4F6CF7",
+   description:"溶接総投資守り切り",kpi:"$182.1M(HCM) 225.1ｵｸ円(YO)",
+   subs:[
+     {id:"s_C_台当たりコスト",name:"[C:コスト] 台当たりコスト",tags:[],updated:"2025-06",items:[
+       {id:"x",name:"台当たりコスト",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"- — - — 台当たりコスト"},
+     ]},
+     {id:"s_C_投資",name:"[C:コスト] 投資",tags:[],updated:"2025-06",items:[
+       {id:"x",name:"投資",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"- — - — 投資"},
+     ]},
+   ]
+  },
+  {id:"WE工場生産台数",title:"WE工場生産台数",icon:"📌",themeColor:"#10B981",
+   description:"WE工場生産台数",kpi:"1000UPD",
+   subs:[
+     {id:"s_D_サイクルタイム",name:"[D:設備] サイクルタイム",tags:["設備システム"],updated:"2025-06",items:[
+       {id:"x",name:"エアー流量",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"サイクルタイム検証 — 設備システム — エアー流量"},
+       {id:"x",name:"ホース長さ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"サイクルタイム検証 — 設備システム — ホース長さ"},
+       {id:"x",name:"マガジン",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"サイクルタイム検証 — 設備システム — マガジン"},
+     ]},
+   ]
+  },
+  {id:"可動率(ISO準",title:"可動率(ISO準拠)",icon:"📌",themeColor:"#EC4899",
+   description:"可動率(ISO準拠)",kpi:"0.973",
+   subs:[
+     {id:"s_D_耐久性",name:"[D:設備] 耐久性",tags:["連打数", "瞬停影響"],updated:"2025-06",items:[
+       {id:"x",name:"瞬停影響",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"瞬停時ツール影響検証 — 瞬停影響 — 瞬停影響"},
+       {id:"x",name:"連打N数",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"耐久試験 — 連打数 — 連打N数"},
+     ]},
+     {id:"s_D_要素信頼性",name:"[D:設備] 要素信頼性",tags:["復旧方法", "連打数", "エラー表示", "再加工方案"],updated:"2025-06",items:[
+       {id:"x",name:"連打N数",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"信頼性検証 — 連打数 — 連打N数"},
+       {id:"x",name:"供給/加工時姿勢",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"最適艤装検証 — 艤装 — 供給/加工時姿勢"},
+       {id:"x",name:"エラー表示",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"エラー表示機能構築検証 — エラー表示 — エラー表示"},
+       {id:"x",name:"再加工方案",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"再加工手法構築検証 — 再加工方案 — 再加工方案"},
+       {id:"x",name:"復旧方法",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"復旧方法/時間検証 — 復旧方法 — 復旧方法"},
+       {id:"x",name:"負荷大影響",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"負荷大時通信影響検証 — 負荷大影響 — 負荷大影響"},
+     ]},
+   ]
+  },
+  {id:"手直し率",title:"手直し率",icon:"📌",themeColor:"#F59E0B",
+   description:"手直し率",kpi:"0.954",
+   subs:[
+     {id:"s_D_良品率",name:"[D:設備] 良品率",tags:["品質"],updated:"2025-06",items:[
+       {id:"x",name:"内部品質(インタロック/リベットクラック)",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"良品率検証 — 品質 — 内部品質(インタロック/リベットクラック)"},
+       {id:"x",name:"外観品質(ヘッドハイト/裏面クラック)",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"良品率検証 — 品質 — 外観品質(ヘッドハイト/裏面クラック)"},
+       {id:"x",name:"リベット反転",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"良品率検証 — 品質 — リベット反転"},
+     ]},
+     {id:"s_Q_周辺品質",name:"[Q:品質] 周辺品質",tags:["ADC製品", "打順", "GAP", "引き込み量"],updated:"2025-06",items:[
+       {id:"x",name:"伸び",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"変形影響明確化検証 — ADC製品 — 伸び"},
+       {id:"x",name:"剛性/形状",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"変形影響明確化検証 — ADC製品 — 剛性/形状"},
+       {id:"x",name:"実ワーク 基準PIN穴影響",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"変形影響明確化検証 — ADC製品 — 実ワーク 基準PIN穴影響"},
+       {id:"x",name:"GAP量",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"変形影響明確化検証 — GAP — GAP量"},
+       {id:"x",name:"JIG押さえ量",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"変形影響明確化検証 — JIG押さえ量 — JIG押さえ量"},
+       {id:"x",name:"引き込み量",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"変形影響明確化検証 — 引き込み量 — 引き込み量"},
+       {id:"x",name:"打順影響",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"変形影響明確化検証 — 打順 — 打順影響"},
+       {id:"x",name:"ADC品質(曲げ/伸び)",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"端部距離明確化検証 — 端部距離 — ADC品質(曲げ/伸び)"},
+       {id:"x",name:"端部距離",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"端部距離明確化検証 — 端部距離 — 端部距離"},
+     ]},
+     {id:"s_Q_強度",name:"[Q:品質] 強度",tags:["リベット", "GAP", "N数", "ADC"],updated:"2025-06",items:[
+       {id:"x",name:"N数",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"板組N増し検証 — N数 — N数"},
+       {id:"x",name:"ダイ-板間 GAP量",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"GAPタフネス検証 — GAP — ダイ-板間 GAP量"},
+       {id:"x",name:"ノーズピース-板間 GAP量",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"GAPタフネス検証 — GAP — ノーズピース-板間 GAP量"},
+       {id:"x",name:"板間GAP量",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"GAPタフネス検証 — GAP — 板間GAP量"},
+       {id:"x",name:"移動時抵抗",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"RB姿勢タフネス検証 — パンチ — 移動時抵抗"},
+       {id:"x",name:"フィンガーへの収まり",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"RB姿勢タフネス検証 — リベット — フィンガーへの収まり"},
+       {id:"x",name:"ノイズ影響",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"RB姿勢タフネス検証 — 加圧波形 — ノイズ影響"},
+       {id:"x",name:"ダイ取付忘れ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"人外乱タフネス検証 — ダイ — ダイ取付忘れ"},
+       {id:"x",name:"違うダイを取り付ける",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"人外乱タフネス検証 — ダイ — 違うダイを取り付ける"},
+       {id:"x",name:"はずれ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"人外乱タフネス検証 — ノーズピース — はずれ"},
+       {id:"x",name:"ガタ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"人外乱タフネス検証 — ノーズピース — ガタ"},
+       {id:"x",name:"取付ミス(ガタなど)",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"人外乱タフネス検証 — ノーズピース — 取付ミス(ガタなど)"},
+       {id:"x",name:"加圧条件変更",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"人外乱タフネス検証 — パンチ — 加圧条件変更"},
+       {id:"x",name:"取付ミス(ガタなど)",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"人外乱タフネス検証 — パンチ — 取付ミス(ガタなど)"},
+       {id:"x",name:"違うリベットを入れる",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"人外乱タフネス検証 — リベット — 違うリベットを入れる"},
+       {id:"x",name:"ガンたわみ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"位置バラつきタフネス検証 — 位置 — ガンたわみ"},
+       {id:"x",name:"位置",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"位置バラつきタフネス検証 — 位置 — 位置"},
+       {id:"x",name:"端部距離",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"位置バラつきタフネス検証 — 位置 — 端部距離"},
+       {id:"x",name:"軸ズレ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"位置バラつきタフネス検証 — 位置 — 軸ズレ"},
+       {id:"x",name:"角度",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"位置バラつきタフネス検証 — 角度 — 角度"},
+       {id:"x",name:"伸び",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"内部品質タフネス検証 — ADC — 伸び"},
+       {id:"x",name:"外観品質",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"内部品質タフネス検証 — ADC — 外観品質"},
+       {id:"x",name:"曲げ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"内部品質タフネス検証 — ADC — 曲げ"},
+       {id:"x",name:"材料成分",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"内部品質タフネス検証 — ADC — 材料成分"},
+       {id:"x",name:"鋳巣",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"内部品質タフネス検証 — ADC — 鋳巣"},
+       {id:"x",name:"熱処理",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"内部品質タフネス検証 — ダイ — 熱処理"},
+       {id:"x",name:"強度/成分",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"内部品質タフネス検証 — リベット — 強度/成分"},
+       {id:"x",name:"平面度",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ADC — 平面度"},
+       {id:"x",name:"抜き勾配",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ADC — 抜き勾配"},
+       {id:"x",name:"板厚ばらつき",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ADC — 板厚ばらつき"},
+       {id:"x",name:"ダイ傷",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ダイ — ダイ傷"},
+       {id:"x",name:"ダイ割れ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ダイ — ダイ割れ"},
+       {id:"x",name:"ダイ容量",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ダイ — ダイ容量"},
+       {id:"x",name:"ダイ摩耗",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ダイ — ダイ摩耗"},
+       {id:"x",name:"ダイ破損",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ダイ — ダイ破損"},
+       {id:"x",name:"ダイ詰まり",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ダイ — ダイ詰まり"},
+       {id:"x",name:"ノーズピース傷",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ノーズピース — ノーズピース傷"},
+       {id:"x",name:"ノーズピース変形",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ノーズピース — ノーズピース変形"},
+       {id:"x",name:"ノーズピース摩耗",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ノーズピース — ノーズピース摩耗"},
+       {id:"x",name:"ノーズピース曲がり",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ノーズピース — ノーズピース曲がり"},
+       {id:"x",name:"ノーズピース破損",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ノーズピース — ノーズピース破損"},
+       {id:"x",name:"ノーズピース長さ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — ノーズピース — ノーズピース長さ"},
+       {id:"x",name:"パンチフレ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — パンチ — パンチフレ"},
+       {id:"x",name:"パンチ傷",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — パンチ — パンチ傷"},
+       {id:"x",name:"パンチ摩耗",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — パンチ — パンチ摩耗"},
+       {id:"x",name:"パンチ破損",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — パンチ — パンチ破損"},
+       {id:"x",name:"リベット長さ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — リベット — リベット長さ"},
+       {id:"x",name:"内部体積",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — リベット — 内部体積"},
+       {id:"x",name:"寸法公差",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"形状バラつき検証 — リベット — 寸法公差"},
+       {id:"x",name:"ゴミカミ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"異物タフネス検証 — ADC — ゴミカミ"},
+     ]},
+     {id:"s_Q_裏面品質",name:"[Q:品質] 裏面品質",tags:["ADC", "材料SPEC", "ダイ"],updated:"2025-06",items:[
+       {id:"x",name:"上記検証のなかで推進",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"ADC反映項目明確化 — 材料SPEC — 上記検証のなかで推進"},
+       {id:"x",name:"上記検証のなかで推進",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"裏面クラックSPEC最適化 — 材料SPEC — 上記検証のなかで推進"},
+       {id:"x",name:"RR ADC ERトライワーク",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"裏面クラックメカニズム検証 — ADC — RR ADC ERトライワーク"},
+       {id:"x",name:"曲げ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"裏面クラックメカニズム検証 — ADC — 曲げ"},
+       {id:"x",name:"表面部の伸び",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"裏面クラックメカニズム検証 — ADC — 表面部の伸び"},
+       {id:"x",name:"フラットダイ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"最適ダイ検証 — ダイ — フラットダイ"},
+       {id:"x",name:"リングダイ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"最適ダイ検証 — ダイ — リングダイ"},
+     ]},
+   ]
+  },
+  {id:"直直要員",title:"直直要員",icon:"📌",themeColor:"#8B5CF6",
+   description:"直直要員",kpi:"182名/2直 (244名@YO)",
+   subs:[
+     {id:"s_D_リペア",name:"[D:設備] リペア",tags:["品質", "工数"],updated:"2025-06",items:[
+       {id:"x",name:"GAP影響",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"リペア手法品質検証 — 品質 — GAP影響"},
+       {id:"x",name:"ロバスト性",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"リペア手法品質検証 — 品質 — ロバスト性"},
+       {id:"x",name:"出張り",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"リペア手法品質検証 — 品質 — 出張り"},
+       {id:"x",name:"変形",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"リペア手法品質検証 — 品質 — 変形"},
+       {id:"x",name:"強度",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"リペア手法品質検証 — 品質 — 強度"},
+       {id:"x",name:"耐食性",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"リペア手法品質検証 — 品質 — 耐食性"},
+       {id:"x",name:"共通板組範囲",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"リペア手法品質検証 — 工数 — 共通板組範囲"},
+       {id:"x",name:"加工工数",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"リペア手法品質検証 — 工数 — 加工工数"},
+     ]},
+     {id:"s_D_検査",name:"[D:設備] 検査",tags:["設備システム", "貫通クラック", "各エラー", "材料バラつき"],updated:"2025-06",items:[
+       {id:"x",name:"人によるバラつき",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"ヘッドハイト検査検証 — 人測り方バラつき — 人によるバラつき"},
+       {id:"x",name:"TP",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"ヘッドハイト検査検証 — 材料バラつき — TP"},
+       {id:"x",name:"実機(密度低)",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"ヘッドハイト検査検証 — 材料バラつき — 実機(密度低)"},
+       {id:"x",name:"抜き勾配",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"ヘッドハイト検査検証 — 材料バラつき — 抜き勾配"},
+       {id:"x",name:"HPA",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"ヘッドハイト検査検証 — 異物バラつき — HPA"},
+       {id:"x",name:"パッケージチェック",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"リベット検知機能検証 — 設備システム — パッケージチェック"},
+       {id:"x",name:"フィーダー部",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"リベット検知機能検証 — 設備システム — フィーダー部"},
+       {id:"x",name:"ホース部センサ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"リベット検知機能検証 — 設備システム — ホース部センサ"},
+       {id:"x",name:"ヘッドハイト管理",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"加圧カーブ機能検証 — 各エラー — ヘッドハイト管理"},
+       {id:"x",name:"リベットなし",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"加圧カーブ機能検証 — 各エラー — リベットなし"},
+       {id:"x",name:"反転",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"加圧カーブ機能検証 — 各エラー — 反転"},
+       {id:"x",name:"板厚変化",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"加圧カーブ機能検証 — 各エラー — 板厚変化"},
+       {id:"x",name:"軸ズレ",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"加圧カーブ機能検証 — 各エラー — 軸ズレ"},
+       {id:"x",name:"部位(円周クラック検知)",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"裏面クラック検査検証 — 貫通クラック — 部位(円周クラック検知)"},
+     ]},
+     {id:"s_D_量産管理手法",name:"[D:設備] 量産管理手法",tags:["設備条件"],updated:"2025-06",items:[
+       {id:"x",name:"ストローク",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"量産管理手法構築検証 — 設備条件 — ストローク"},
+       {id:"x",name:"加圧",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"量産管理手法構築検証 — 設備条件 — 加圧"},
+     ]},
+   ]
+  },
+  {id:"-",title:"-",icon:"📌",themeColor:"#14B8A6",
+   description:"-",kpi:"-",
+   subs:[
+     {id:"s_M_環境負荷",name:"[M:管理] 環境負荷",tags:[],updated:"2025-06",items:[
+       {id:"x",name:"環境負荷",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"- — - — 環境負荷"},
+     ]},
+   ]
+  },
+  {id:"WE工場スペース",title:"WE工場スペース",icon:"📌",themeColor:"#EF4444",
+   description:"WE工場スペース",kpi:"72,000m2以内 (40,000m2@YO)",
+   subs:[
+     {id:"s_M_スペース要員",name:"[M:管理] スペース要員",tags:[],updated:"2025-06",items:[
+       {id:"x",name:"スペース要員",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"- — - — スペース要員"},
+     ]},
+   ]
+  },
+  {id:"エネルギーミニマ",title:"エネルギーミニマムな車体構造とプロセスを構築し、エ...",icon:"📌",themeColor:"#06B6D4",
+   description:"エネルギーミニマムな車体構造とプロセスを構築し、エンドユーザーに魅力ある商品を適正な価格でタイムリーに提供すること",kpi:"生産総エネルギーの費用対効果を高める車体構造と生産プロセスを構築すること (新機種エネルギ▲30%)",
+   subs:[
+     {id:"s_M_標準化",name:"[M:管理] 標準化",tags:["板組素材"],updated:"2025-06",items:[
+       {id:"x",name:"板組範囲",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"板組範囲明確化検証 — 板組素材 — 板組範囲"},
+     ]},
+   ]
+  },
+  {id:"エルゴイエロー作",title:"エルゴイエロー作業",icon:"📌",themeColor:"#F97316",
+   description:"エルゴイエロー作業",kpi:"",
+   subs:[
+     {id:"s_M_安全基準",name:"[M:管理] 安全基準",tags:[],updated:"2025-06",items:[
+       {id:"x",name:"安全基準",type:"検証",status:"standard",author:"SPR-PJ",date:"2025/06",detail:"- — - — 安全基準"},
+     ]},
+   ]
+  },
+];
+
+/* ════════════════════════════════════════
+   UTIL
+════════════════════════════════════════ */
+const rgba=(hex,a)=>{const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},${a})`;};
+const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+const lin=(k,k0,k1,v0,v1)=>v0+(v1-v0)*clamp((k-k0)/(k1-k0),0,1);
+const ST={critical:{cls:"st-critical",lbl:"重要"},asset:{cls:"st-asset",lbl:"技術資産"},standard:{cls:"st-standard",lbl:"標準"}};
+const stBadge=s=>`<span class="st-badge ${(ST[s]||ST.standard).cls}">${(ST[s]||ST.standard).lbl}</span>`;
+const typeBadge=(t,col)=>`<span class="dbadge" style="background:${rgba(col,.08)};color:${col}">${t}</span>`;
+
+/* ════════════════════════════════════════
+   SVG ICON HELPERS
+════════════════════════════════════════ */
+const ICONS={
+  grid:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  gear:'<svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81a.47.47 0 00-.47-.41h-3.85c-.24 0-.44.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 9.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.04.24.24.41.47.41h3.85c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z"/></svg>',
+  chart:'<svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>',
+  shield:'<svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>',
+  search:'<svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>',
+  tool:'<svg viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>',
+  doc:'<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>',
+  link:'<svg viewBox="0 0 24 24"><path d="M18 19H6c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1h5V3H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-5h-2v5c0 .55-.45 1-1 1zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>',
+  warn:'<svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>',
+  cost:'<svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>',
+  folder:'<svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>',
+};
+function icon(name,col){return (ICONS[name]||ICONS.doc).replace(/<svg /,`<svg fill="${col}" `);}
+
+/* per-category icon choice */
+function catIcon(cat){
+  const t=(cat.title||'').toLowerCase();
+  if(t.includes('品質')&&t.includes('強度')) return 'shield';
+  if(t.includes('品質')) return 'search';
+  if(t.includes('設備')&&t.includes('信頼')) return 'gear';
+  if(t.includes('良品')||t.includes('検査')) return 'search';
+  if(t.includes('リペア')||t.includes('量産')) return 'tool';
+  if(t.includes('コスト')||t.includes('標準')) return 'cost';
+  if(t.includes('投資')) return 'cost';
+  if(t.includes('生産')||t.includes('可動')) return 'gear';
+  if(t.includes('手直')) return 'chart';
+  if(t.includes('要員')) return 'tool';
+  return 'grid';
+}
+
+/* ════════════════════════════════════════
+   OVERVIEW
+════════════════════════════════════════ */
+let ovMode='upper';
+function setOvMode(mode){
+  ovMode=mode;
+  document.getElementById('ov-btn-upper').classList.toggle('on',mode==='upper');
+  document.getElementById('ov-btn-req').classList.toggle('on',mode==='req');
+  buildOverview();
+}
+
+function getOvCats(){
+  if(ovMode==='upper') return CATS;
+  // Group by 要件項目 (sub.name without [X:Y] prefix)
+  const map={};
+  CATS.forEach(cat=>{
+    cat.subs.forEach(sub=>{
+      const raw=sub.name.replace(/^\[.*?\]\s*/,'');
+      if(!map[raw]) map[raw]={id:'r_'+raw,title:raw,themeColor:cat.themeColor,description:cat.description,subs:[]};
+      map[raw].subs.push({...sub,parentCat:cat.title});
+      map[raw].themeColor=cat.themeColor;
+    });
+  });
+  return Object.values(map);
+}
+
+function buildOverview(){
+  const cats=getOvCats();
+  const totalAll=cats.reduce((s,c)=>s+c.subs.reduce((ss,sub)=>ss+sub.items.length,0),0);
+  document.getElementById("ov-stat").textContent=`${totalAll} items`;
+
+  document.getElementById("ov-grid").innerHTML=cats.map(cat=>{
+    const allItems=cat.subs.flatMap(s=>s.items);
+    const total=allItems.length;
+    const preview=allItems.slice(0,2);
+    const moreN=total-preview.length;
+    const ic=catIcon(cat);
+    const col=cat.themeColor;
+    return `
+    <div class="c-card" id="cc-${cat.id}" onclick="openDetail(event,'${cat.id}')">
+      <div style="position:absolute;top:0;left:0;bottom:0;width:4px;background:${col};border-radius:14px 0 0 14px"></div>
+      <div style="position:absolute;top:-18px;right:-18px;width:52px;height:52px;border-radius:50%;background:${col};opacity:.08"></div>
+      <div class="c-inner">
+        <div class="c-ico-wrap">
+          <div class="c-ico" style="background:${rgba(col,.08)}">${icon(ic,col)}</div>
+        </div>
+        <div>
+          <div class="c-title">${cat.title}</div>
+          <div class="c-desc">${cat.description.length>60?cat.description.slice(0,60)+'…':cat.description}</div>
+        </div>
+        <div>
+          <div class="c-incl-hdr">
+            <span class="c-incl-lbl">Inclusions</span>
+            <span class="c-incl-cnt" style="color:${col}">${total} FILES</span>
+          </div>
+          <div class="c-prev">
+            ${preview.map(it=>`<div class="c-pi"><div class="c-pi-ico" style="background:${rgba(col,.08)}">${icon('doc',col)}</div><span class="c-pi-name">${it.name}</span></div>`).join("")}
+          </div>
+          ${moreN>0?`<div class="c-more">+ ${moreN} more items…</div>`:''}
+        </div>
+      </div>
+      <div class="c-foot">
+        <svg viewBox="0 0 24 24"><path d="M18 19H6c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1h5V3H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-5h-2v5c0 .55-.45 1-1 1zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+        <span>Click to Zoom</span>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* ════════════════════════════════════════
+   ZOOM DETAIL (matching reference image)
+════════════════════════════════════════ */
+let _cat=null;
+
+function openDetail(ev, catId){
+  ev.stopPropagation();
+  const cats=getOvCats();
+  const cat=cats.find(c=>c.id===catId);
+  if(!cat) return;
+  _cat=cat;
+  const card=document.getElementById(`cc-${catId}`);
+  const cr=card.getBoundingClientRect();
+  const hdH=60, ftH=32;
+  const zo=document.getElementById("zo");
+  zo.style.transition="none";
+  Object.assign(zo.style,{top:cr.top+"px",left:cr.left+"px",width:cr.width+"px",height:cr.height+"px",borderRadius:"14px"});
+  zo.classList.add("open");
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    zo.style.transition="";
+    Object.assign(zo.style,{top:hdH+"px",left:"0px",width:"100%",height:(window.innerHeight-hdH-ftH)+"px",borderRadius:"0px"});
+  }));
+  renderDetail(cat);
+  setTimeout(()=>document.getElementById("zo-back").focus(),400);
+}
+
+function closeDetail(){
+  const zo=document.getElementById("zo");
+  if(!_cat) return;
+  const card=document.getElementById(`cc-${_cat.id}`);
+  if(card){
+    const cr=card.getBoundingClientRect();
+    Object.assign(zo.style,{top:cr.top+"px",left:cr.left+"px",width:cr.width+"px",height:cr.height+"px",borderRadius:"14px"});
+  }
+  setTimeout(()=>{zo.classList.remove("open");_cat=null;},380);
+}
+
+window.addEventListener("keydown",e=>{if(e.key==="Escape")closeDetail();});
+
+function renderDetail(cat){
+  const col=cat.themeColor;
+  const ic=catIcon(cat);
+  // Header banner (solid color)
+  const hd=document.getElementById("zo-hd");
+  hd.style.background=col;
+  document.getElementById("zo-hd-ico").innerHTML=icon(ic,'#fff');
+  document.getElementById("zo-hd-title").textContent=cat.title;
+  document.getElementById("zo-hd-desc").textContent=cat.description;
+
+  // Pills
+  document.getElementById("zo-pills").innerHTML=
+    `<div class="zo-pill on" style="background:${col};border-color:${col}" onclick="filterSub(null,this)">すべて</div>`+
+    cat.subs.map(s=>`<div class="zo-pill" onclick="filterSub('${s.id}',this)">${s.name}</div>`).join("");
+
+  renderItems(cat,null);
+}
+
+function renderItems(cat,subId){
+  const subs=subId?cat.subs.filter(s=>s.id===subId):cat.subs;
+  const col=cat.themeColor;
+  const allCount=subs.reduce((s,sub)=>s+sub.items.length,0);
+  document.getElementById("zo-fcnt").textContent=`(${allCount})`;
+  document.getElementById("zo-fcnt").style.color=col;
+
+  document.getElementById("zo-items").innerHTML=subs.map(sub=>`
+    <div class="zo-sec">
+      <div class="zo-sec-hd">
+        <span class="zo-sec-name">${sub.name}</span>
+        <span class="zo-sec-cnt" style="background:${rgba(col,.08)};color:${col}">${sub.items.length} 件</span>
+        ${(sub.tags||[]).slice(0,3).map(t=>`<span class="zo-sec-tag">${t}</span>`).join("")}
+      </div>
+      ${sub.items.map(it=>`
+        <div class="zo-fc">
+          <div class="zo-fc-ico" style="background:${rgba(col,.08)}">${icon('doc',col)}</div>
+          <div class="zo-fc-body">
+            <div class="zo-fc-name">${it.name}</div>
+            <div class="zo-fc-desc">${it.detail}</div>
+            <div class="zo-fc-meta">
+              <span>${it.author}</span>
+              <span>${it.date}</span>
+            </div>
+          </div>
+          <div class="zo-fc-link">${icon('link','#9BA3B8')}</div>
+        </div>`).join("")}
+    </div>`).join("");
+}
+
+window.filterSub=(subId,el)=>{
+  document.querySelectorAll(".zo-pill").forEach(p=>{
+    p.classList.remove("on");p.style.background="";p.style.borderColor="";
+  });
+  el.classList.add("on");el.style.background=_cat.themeColor;el.style.borderColor=_cat.themeColor;
+  renderItems(_cat,subId);
+};
+
+/* ════════════════════════════════════════
+   D3 CIRCLE PACKING MAP — 6-LEVEL HIERARCHY
+════════════════════════════════════════ */
+const RAW_DATA={name:"SPR テーマ企画連鎖",children:[
+  {name:"溶接総投資守り切り",fullName:"溶接総投資守り切り",color:"#4F6CF7",kpi:"$182.1M(HCM) 225.1ｵｸ円(YO)",children:[
+    {name:"C:コスト",color:"#4F6CF7",children:[
+      {name:"台当たりコスト",color:"#4F6CF7",req:"ボルト以下",value:1},
+      {name:"投資",color:"#4F6CF7",req:"総投資ボルト以下",value:1},
+    ]},
+  ]},
+  {name:"WE工場生産台数",fullName:"WE工場生産台数",color:"#10B981",kpi:"1000UPD",children:[
+    {name:"D:設備",color:"#10B981",children:[
+      {name:"サイクルタイム",color:"#10B981",req:"4.9s 3.0s以下 (チャレンジ項目)",children:[
+        {name:"サイクルタイム検証",color:"#10B981",perspective:"Machine：設備",children:[
+          {name:"設備システム",color:"#10B981",children:[
+            {name:"エアー流量",color:"#10B981",value:1},
+            {name:"ホース長さ",color:"#10B981",value:1},
+            {name:"マガジン",color:"#10B981",value:1},
+          ]},
+        ]},
+      ]},
+    ]},
+  ]},
+  {name:"可動率(ISO準拠)",fullName:"可動率(ISO準拠)",color:"#EC4899",kpi:"0.973",children:[
+    {name:"D:設備",color:"#EC4899",children:[
+      {name:"耐久性",color:"#EC4899",req:"1回/1月以上",children:[
+        {name:"瞬停時ツール影響検証",color:"#EC4899",perspective:"Machine：設備",children:[
+          {name:"瞬停影響",color:"#EC4899",children:[
+            {name:"瞬停影響",color:"#EC4899",value:1},
+          ]},
+        ]},
+        {name:"耐久試験",color:"#EC4899",perspective:"Machine：設備",children:[
+          {name:"連打数",color:"#EC4899",children:[
+            {name:"連打N数",color:"#EC4899",value:1},
+          ]},
+        ]},
+      ]},
+      {name:"要素信頼性",color:"#EC4899",req:"99.96%以上",children:[
+        {name:"信頼性検証",color:"#EC4899",perspective:"Machine：設備",children:[
+          {name:"連打数",color:"#EC4899",children:[
+            {name:"連打N数",color:"#EC4899",value:1},
+          ]},
+        ]},
+        {name:"最適艤装検証",color:"#EC4899",perspective:"Machine：設備",children:[
+          {name:"艤装",color:"#EC4899",children:[
+            {name:"供給/加工時姿勢",color:"#EC4899",value:1},
+          ]},
+        ]},
+        {name:"エラー表示機能構築検証",color:"#EC4899",perspective:"Machine：設備",children:[
+          {name:"エラー表示",color:"#EC4899",children:[
+            {name:"エラー表示",color:"#EC4899",value:1},
+          ]},
+        ]},
+        {name:"再加工手法構築検証",color:"#EC4899",perspective:"Machine：設備",children:[
+          {name:"再加工方案",color:"#EC4899",children:[
+            {name:"再加工方案",color:"#EC4899",value:1},
+          ]},
+        ]},
+        {name:"復旧方法/時間検証",color:"#EC4899",perspective:"Machine：設備",children:[
+          {name:"復旧方法",color:"#EC4899",children:[
+            {name:"復旧方法",color:"#EC4899",value:1},
+          ]},
+        ]},
+        {name:"負荷大時通信影響検証",color:"#EC4899",perspective:"Machine：設備",children:[
+          {name:"負荷大影響",color:"#EC4899",children:[
+            {name:"負荷大影響",color:"#EC4899",value:1},
+          ]},
+        ]},
+      ]},
+    ]},
+  ]},
+  {name:"手直し率",fullName:"手直し率",color:"#F59E0B",kpi:"0.954",children:[
+    {name:"D:設備",color:"#F59E0B",children:[
+      {name:"良品率",color:"#F59E0B",req:"99.994%以上",children:[
+        {name:"良品率検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"品質",color:"#F59E0B",children:[
+            {name:"内部品質(インタロック/リベットクラック)",color:"#F59E0B",value:1},
+            {name:"外観品質(ヘッドハイト/裏面クラック)",color:"#F59E0B",value:1},
+            {name:"リベット反転",color:"#F59E0B",value:1},
+          ]},
+        ]},
+      ]},
+    ]},
+    {name:"Q:品質",color:"#F59E0B",children:[
+      {name:"周辺品質",color:"#F59E0B",req:"精度変化B面±0.3以下 端部割れなきこと",children:[
+        {name:"変形影響明確化検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"ADC製品",color:"#F59E0B",children:[
+            {name:"伸び",color:"#F59E0B",value:1},
+            {name:"剛性/形状",color:"#F59E0B",value:1},
+            {name:"実ワーク 基準PIN穴影響",color:"#F59E0B",value:1},
+          ]},
+          {name:"GAP",color:"#F59E0B",children:[
+            {name:"GAP量",color:"#F59E0B",value:1},
+          ]},
+          {name:"JIG押さえ量",color:"#F59E0B",children:[
+            {name:"JIG押さえ量",color:"#F59E0B",value:1},
+          ]},
+          {name:"引き込み量",color:"#F59E0B",children:[
+            {name:"引き込み量",color:"#F59E0B",value:1},
+          ]},
+          {name:"打順",color:"#F59E0B",children:[
+            {name:"打順影響",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"端部距離明確化検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"端部距離",color:"#F59E0B",children:[
+            {name:"ADC品質(曲げ/伸び)",color:"#F59E0B",value:1},
+            {name:"端部距離",color:"#F59E0B",value:1},
+          ]},
+        ]},
+      ]},
+      {name:"強度",color:"#F59E0B",req:"SPEC以上満足 ※付表1 ヘッドハイト±0.2㎜以下",children:[
+        {name:"リベットクラックメカニズム検証",color:"#F59E0B",value:1},
+        {name:"板組N増し検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"N数",color:"#F59E0B",children:[
+            {name:"N数",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"GAPタフネス検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"GAP",color:"#F59E0B",children:[
+            {name:"ダイ-板間 GAP量",color:"#F59E0B",value:1},
+            {name:"ノーズピース-板間 GAP量",color:"#F59E0B",value:1},
+            {name:"板間GAP量",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"RB姿勢タフネス検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"パンチ",color:"#F59E0B",children:[
+            {name:"移動時抵抗",color:"#F59E0B",value:1},
+          ]},
+          {name:"リベット",color:"#F59E0B",children:[
+            {name:"フィンガーへの収まり",color:"#F59E0B",value:1},
+          ]},
+          {name:"加圧波形",color:"#F59E0B",children:[
+            {name:"ノイズ影響",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"人外乱タフネス検証",color:"#F59E0B",perspective:"Man：人",children:[
+          {name:"ダイ",color:"#F59E0B",children:[
+            {name:"ダイ取付忘れ",color:"#F59E0B",value:1},
+            {name:"違うダイを取り付ける",color:"#F59E0B",value:1},
+          ]},
+          {name:"ノーズピース",color:"#F59E0B",children:[
+            {name:"はずれ",color:"#F59E0B",value:1},
+            {name:"ガタ",color:"#F59E0B",value:1},
+            {name:"取付ミス(ガタなど)",color:"#F59E0B",value:1},
+          ]},
+          {name:"パンチ",color:"#F59E0B",children:[
+            {name:"加圧条件変更",color:"#F59E0B",value:1},
+            {name:"取付ミス(ガタなど)",color:"#F59E0B",value:1},
+          ]},
+          {name:"リベット",color:"#F59E0B",children:[
+            {name:"違うリベットを入れる",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"位置バラつきタフネス検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"位置",color:"#F59E0B",children:[
+            {name:"ガンたわみ",color:"#F59E0B",value:1},
+            {name:"位置",color:"#F59E0B",value:1},
+            {name:"端部距離",color:"#F59E0B",value:1},
+            {name:"軸ズレ",color:"#F59E0B",value:1},
+          ]},
+          {name:"角度",color:"#F59E0B",children:[
+            {name:"角度",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"内部品質タフネス検証",color:"#F59E0B",perspective:"Material：材料",children:[
+          {name:"ADC",color:"#F59E0B",children:[
+            {name:"伸び",color:"#F59E0B",value:1},
+            {name:"外観品質",color:"#F59E0B",value:1},
+            {name:"曲げ",color:"#F59E0B",value:1},
+            {name:"材料成分",color:"#F59E0B",value:1},
+            {name:"鋳巣",color:"#F59E0B",value:1},
+          ]},
+          {name:"ダイ",color:"#F59E0B",children:[
+            {name:"熱処理",color:"#F59E0B",value:1},
+          ]},
+          {name:"リベット",color:"#F59E0B",children:[
+            {name:"強度/成分",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"形状バラつき検証",color:"#F59E0B",perspective:"Material：材料",children:[
+          {name:"ADC",color:"#F59E0B",children:[
+            {name:"平面度",color:"#F59E0B",value:1},
+            {name:"抜き勾配",color:"#F59E0B",value:1},
+            {name:"板厚ばらつき",color:"#F59E0B",value:1},
+          ]},
+          {name:"ダイ",color:"#F59E0B",children:[
+            {name:"ダイ傷",color:"#F59E0B",value:1},
+            {name:"ダイ割れ",color:"#F59E0B",value:1},
+            {name:"ダイ容量",color:"#F59E0B",value:1},
+            {name:"ダイ摩耗",color:"#F59E0B",value:1},
+            {name:"ダイ破損",color:"#F59E0B",value:1},
+            {name:"ダイ詰まり",color:"#F59E0B",value:1},
+          ]},
+          {name:"ノーズピース",color:"#F59E0B",children:[
+            {name:"ノーズピース傷",color:"#F59E0B",value:1},
+            {name:"ノーズピース変形",color:"#F59E0B",value:1},
+            {name:"ノーズピース摩耗",color:"#F59E0B",value:1},
+            {name:"ノーズピース曲がり",color:"#F59E0B",value:1},
+            {name:"ノーズピース破損",color:"#F59E0B",value:1},
+            {name:"ノーズピース長さ",color:"#F59E0B",value:1},
+          ]},
+          {name:"パンチ",color:"#F59E0B",children:[
+            {name:"パンチフレ",color:"#F59E0B",value:1},
+            {name:"パンチ傷",color:"#F59E0B",value:1},
+            {name:"パンチ摩耗",color:"#F59E0B",value:1},
+            {name:"パンチ破損",color:"#F59E0B",value:1},
+          ]},
+          {name:"リベット",color:"#F59E0B",children:[
+            {name:"リベット長さ",color:"#F59E0B",value:1},
+            {name:"内部体積",color:"#F59E0B",value:1},
+            {name:"寸法公差",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"異物タフネス検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"ADC",color:"#F59E0B",children:[
+            {name:"ゴミカミ",color:"#F59E0B",value:1},
+          ]},
+          {name:"その他",color:"#F59E0B",children:[
+            {name:"HPA",color:"#F59E0B",value:1},
+            {name:"スパッタ",color:"#F59E0B",value:1},
+            {name:"洗浄液",color:"#F59E0B",value:1},
+            {name:"防錆油",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"表面状態タフネス検証",color:"#F59E0B",perspective:"Material：材料",children:[
+          {name:"ADC",color:"#F59E0B",children:[
+            {name:"表面粗さ",color:"#F59E0B",value:1},
+            {name:"面削有無",color:"#F59E0B",value:1},
+          ]},
+          {name:"ダイ",color:"#F59E0B",children:[
+            {name:"メッキ",color:"#F59E0B",value:1},
+            {name:"硬度",color:"#F59E0B",value:1},
+            {name:"表面粗さ",color:"#F59E0B",value:1},
+          ]},
+          {name:"ノーズピース",color:"#F59E0B",children:[
+            {name:"表面状態",color:"#F59E0B",value:1},
+          ]},
+          {name:"パンチ",color:"#F59E0B",children:[
+            {name:"表面状態",color:"#F59E0B",value:1},
+          ]},
+          {name:"リベット",color:"#F59E0B",children:[
+            {name:"メッキ",color:"#F59E0B",value:1},
+            {name:"硬度",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"加工条件管理幅",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"ダイ条件",color:"#F59E0B",children:[
+            {name:"形状/体積管理幅",color:"#F59E0B",value:1},
+          ]},
+          {name:"プリクランプ加圧",color:"#F59E0B",children:[
+            {name:"プリクランプ加圧幅",color:"#F59E0B",value:1},
+          ]},
+          {name:"リベット条件",color:"#F59E0B",children:[
+            {name:"形状管理幅",color:"#F59E0B",value:1},
+          ]},
+          {name:"加圧条件",color:"#F59E0B",children:[
+            {name:"しきい値設定",color:"#F59E0B",value:1},
+            {name:"加圧カーブバラつき",color:"#F59E0B",value:1},
+            {name:"加圧バラつき",color:"#F59E0B",value:1},
+            {name:"実行値との乖離",color:"#F59E0B",value:1},
+            {name:"波形ノイズ",color:"#F59E0B",value:1},
+            {name:"管理幅設定",color:"#F59E0B",value:1},
+          ]},
+          {name:"加工速度",color:"#F59E0B",children:[
+            {name:"加工速度幅",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"受入基準検証",color:"#F59E0B",perspective:"Material：材料",children:[
+          {name:"ダイ",color:"#F59E0B",children:[
+            {name:"ロット差",color:"#F59E0B",value:1},
+            {name:"寸法公差",color:"#F59E0B",value:1},
+            {name:"製造工場違い",color:"#F59E0B",value:1},
+          ]},
+          {name:"ノーズピース",color:"#F59E0B",children:[
+            {name:"ロット差",color:"#F59E0B",value:1},
+            {name:"寸法公差",color:"#F59E0B",value:1},
+            {name:"種類違い",color:"#F59E0B",value:1},
+            {name:"製造工場違い",color:"#F59E0B",value:1},
+          ]},
+          {name:"パンチ",color:"#F59E0B",children:[
+            {name:"ロット差",color:"#F59E0B",value:1},
+            {name:"寸法公差",color:"#F59E0B",value:1},
+            {name:"種類違い",color:"#F59E0B",value:1},
+            {name:"製造工場違い",color:"#F59E0B",value:1},
+          ]},
+          {name:"リベット",color:"#F59E0B",children:[
+            {name:"供給ロット差",color:"#F59E0B",value:1},
+            {name:"変形",color:"#F59E0B",value:1},
+            {name:"寸法公差",color:"#F59E0B",value:1},
+            {name:"破損",color:"#F59E0B",value:1},
+            {name:"製造工場違い",color:"#F59E0B",value:1},
+          ]},
+        ]},
+      ]},
+      {name:"裏面品質",color:"#F59E0B",req:"レベル4以下のこと(仮SPEC)",children:[
+        {name:"ADC反映項目明確化",color:"#F59E0B",perspective:"Management：管理",children:[
+          {name:"材料SPEC",color:"#F59E0B",children:[
+            {name:"上記検証のなかで推進",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"裏面クラックSPEC最適化",color:"#F59E0B",perspective:"Management：管理",children:[
+          {name:"材料SPEC",color:"#F59E0B",children:[
+            {name:"上記検証のなかで推進",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"裏面クラックメカニズム検証",color:"#F59E0B",perspective:"Method：方法",children:[
+          {name:"ADC",color:"#F59E0B",children:[
+            {name:"RR ADC ERトライワーク",color:"#F59E0B",value:1},
+            {name:"曲げ",color:"#F59E0B",value:1},
+            {name:"表面部の伸び",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"最適ダイ検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"ダイ",color:"#F59E0B",children:[
+            {name:"フラットダイ",color:"#F59E0B",value:1},
+            {name:"リングダイ",color:"#F59E0B",value:1},
+          ]},
+        ]},
+      ]},
+    ]},
+  ]},
+  {name:"直直要員",fullName:"直直要員",color:"#8B5CF6",kpi:"182名/2直 (244名@YO)",children:[
+    {name:"D:設備",color:"#8B5CF6",children:[
+      {name:"リペア",color:"#8B5CF6",req:"手法確立のこと",children:[
+        {name:"リペア手法品質検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"品質",color:"#8B5CF6",children:[
+            {name:"GAP影響",color:"#8B5CF6",value:1},
+            {name:"ロバスト性",color:"#8B5CF6",value:1},
+            {name:"出張り",color:"#8B5CF6",value:1},
+            {name:"変形",color:"#8B5CF6",value:1},
+            {name:"強度",color:"#8B5CF6",value:1},
+            {name:"耐食性",color:"#8B5CF6",value:1},
+          ]},
+          {name:"工数",color:"#8B5CF6",children:[
+            {name:"共通板組範囲",color:"#8B5CF6",value:1},
+            {name:"加工工数",color:"#8B5CF6",value:1},
+          ]},
+        ]},
+      ]},
+      {name:"検査",color:"#8B5CF6",req:"G-PACV工程ランク 1.5以上",children:[
+        {name:"ヘッドハイト検査検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"人測り方バラつき",color:"#8B5CF6",children:[
+            {name:"人によるバラつき",color:"#8B5CF6",value:1},
+          ]},
+          {name:"材料バラつき",color:"#8B5CF6",children:[
+            {name:"TP",color:"#8B5CF6",value:1},
+            {name:"実機(密度低)",color:"#8B5CF6",value:1},
+            {name:"抜き勾配",color:"#8B5CF6",value:1},
+          ]},
+          {name:"異物バラつき",color:"#8B5CF6",children:[
+            {name:"HPA",color:"#8B5CF6",value:1},
+          ]},
+        ]},
+        {name:"リベット検知機能検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"設備システム",color:"#8B5CF6",children:[
+            {name:"パッケージチェック",color:"#8B5CF6",value:1},
+            {name:"フィーダー部",color:"#8B5CF6",value:1},
+            {name:"ホース部センサ",color:"#8B5CF6",value:1},
+          ]},
+        ]},
+        {name:"加圧カーブ機能検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"各エラー",color:"#8B5CF6",children:[
+            {name:"ヘッドハイト管理",color:"#8B5CF6",value:1},
+            {name:"リベットなし",color:"#8B5CF6",value:1},
+            {name:"反転",color:"#8B5CF6",value:1},
+            {name:"板厚変化",color:"#8B5CF6",value:1},
+            {name:"軸ズレ",color:"#8B5CF6",value:1},
+          ]},
+        ]},
+        {name:"裏面クラック検査検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"貫通クラック",color:"#8B5CF6",children:[
+            {name:"部位(円周クラック検知)",color:"#8B5CF6",value:1},
+          ]},
+        ]},
+      ]},
+      {name:"量産管理手法",color:"#8B5CF6",req:"手法確立のこと",children:[
+        {name:"量産管理手法構築検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"設備条件",color:"#8B5CF6",children:[
+            {name:"ストローク",color:"#8B5CF6",value:1},
+            {name:"加圧",color:"#8B5CF6",value:1},
+          ]},
+        ]},
+      ]},
+    ]},
+  ]},
+  {name:"-",fullName:"-",color:"#14B8A6",kpi:"-",children:[
+    {name:"M:管理",color:"#14B8A6",children:[
+      {name:"環境負荷",color:"#14B8A6",req:"法規満足",value:1},
+    ]},
+  ]},
+  {name:"WE工場スペース",fullName:"WE工場スペース",color:"#EF4444",kpi:"72,000m2以内 (40,000m2@YO)",children:[
+    {name:"M:管理",color:"#EF4444",children:[
+      {name:"スペース要員",color:"#EF4444",req:"与件スペース以下",value:1},
+    ]},
+  ]},
+  {name:"エネルギーミニマムな車体構造とプロセスを構築し、エ...",fullName:"エネルギーミニマムな車体構造とプロセスを構築し、エンドユーザーに魅力ある商品を適正な価格でタイムリーに提供すること",color:"#06B6D4",kpi:"生産総エネルギーの費用対効果を高める車体構造と生産プロセスを構築すること (新機種エネルギ▲30%)",children:[
+    {name:"M:管理",color:"#06B6D4",children:[
+      {name:"標準化",color:"#06B6D4",req:"GLOBAL標準仕様確立",children:[
+        {name:"板組範囲明確化検証",color:"#06B6D4",perspective:"Machine：設備",children:[
+          {name:"板組素材",color:"#06B6D4",children:[
+            {name:"板組範囲",color:"#06B6D4",value:1},
+          ]},
+        ]},
+      ]},
+    ]},
+  ]},
+  {name:"エルゴイエロー作業",fullName:"エルゴイエロー作業",color:"#F97316",kpi:"",children:[
+    {name:"M:管理",color:"#F97316",children:[
+      {name:"安全基準",color:"#F97316",req:"HM基準満足",value:1},
+    ]},
+  ]},
+]};
+
+const svg=d3.select("#sv");
+const gAll=svg.append("g");
+let W,H,mapNodes,ngs,curK=1;
+const wh=()=>{const e=document.getElementById("map-cv");return{W:e.clientWidth,H:e.clientHeight};};
+const zoom=d3.zoom().scaleExtent([0.05,12])
+  .on("zoom",ev=>{gAll.attr("transform",ev.transform);curK=ev.transform.k;morph(curK);});
+svg.call(zoom).on("dblclick.zoom",null);
+svg.on("mousedown",()=>svg.classed("drag",true)).on("mouseup mouseleave",()=>svg.classed("drag",false));
+
+/* ── Map Mode: full (Lv1~) or skip (Lv2~) ── */
+let mapMode='full';
+
+function getMapData(mode){
+  if(mode==='full') return RAW_DATA;
+  // Skip Lv1: group by QCDE classification (A column)
+  // Merge all items with same A value across different B parents into one circle
+  const qcdeColors={"Q:品質":"#4F6CF7","C:コスト":"#14B8A6","D:設備":"#10B981","M:管理":"#F59E0B"};
+  const groups={};
+  RAW_DATA.children.forEach(lv1=>{
+    const parentShort=lv1.name;
+    (lv1.children||[]).forEach(lv2=>{
+      const key=lv2.name; // e.g. "Q:品質", "D:設備"
+      if(!groups[key]) groups[key]={name:key,color:qcdeColors[key]||lv2.color||lv1.color,children:[]};
+      // Each Lv3 (要件項目) goes under the QCDE group, tagged with parent B
+      (lv2.children||[]).forEach(lv3=>{
+        groups[key].children.push({
+          ...lv3,
+          name:lv3.name,
+          parentLabel:parentShort,
+          fullName:`${parentShort} › ${key} › ${lv3.name}`,
+          color:qcdeColors[key]||lv2.color||lv1.color,
+          children:lv3.children?JSON.parse(JSON.stringify(lv3.children)):undefined,
+          value:lv3.value
+        });
+      });
+      // If lv2 has no children but has a value (leaf at Lv2)
+      if(!lv2.children||lv2.children.length===0){
+        groups[key].children.push({
+          name:lv2.name,parentLabel:parentShort,
+          fullName:`${parentShort} › ${key}`,
+          color:qcdeColors[key]||lv2.color,value:1
+        });
+      }
+    });
+  });
+  // Propagate color to deep children
+  Object.values(groups).forEach(g=>{
+    const col=g.color;
+    const paint=arr=>{if(!arr)return;arr.forEach(c=>{c.color=col;if(c.children)paint(c.children);});};
+    paint(g.children);
+  });
+  const children=Object.values(groups).filter(g=>g.children.length>0);
+  return {name:"SPR テーマ企画連鎖",children};
+}
+
+function setMapMode(mode){
+  mapMode=mode;
+  document.getElementById("btn-lv1").classList.toggle("on",mode==='full');
+  document.getElementById("btn-lv2").classList.toggle("on",mode==='skip');
+  buildMap();
+  // Reset sidebar
+  document.getElementById("sb-empty").style.display="";
+  document.getElementById("sb-det").classList.remove("on");
+  document.getElementById("bc").textContent="SPR テーマ企画連鎖";
+}
+
+function buildMap(){
+  ({W,H}=wh());
+  const sz=Math.min(W,H)*0.93;
+  const root=d3.hierarchy(getMapData(mapMode)).sum(d=>d.value||(d.children?0:1)).sort((a,b)=>b.value-a.value);
+  d3.pack().size([sz,sz]).padding(d=>d.depth<2?10:d.depth<4?6:3)(root);
+  mapNodes=root.descendants();
+  const half=sz/2;
+  mapNodes.forEach(d=>{d.cx=d.x-half;d.cy=d.y-half;});
+  gAll.selectAll("*").remove();
+  ngs=gAll.selectAll(".ng")
+    .data([...mapNodes].sort((a,b)=>a.depth-b.depth))
+    .join("g").attr("class","ng")
+    .attr("transform",d=>`translate(${d.cx},${d.cy})`)
+    .style("cursor",d=>d.depth?"pointer":"default");
+
+  // Circle with glow effect for depth 1
+  ngs.each(function(d){
+    const g=d3.select(this);
+    if(d.depth===1){
+      g.append("circle").attr("class","nc-glow").attr("r",d.r+2)
+        .style("fill","none").style("stroke",rgba(d.data.color,.08)).style("stroke-width",4)
+        .style("pointer-events","none");
+    }
+    g.append("circle").attr("class","nc").attr("r",d.r).style("pointer-events","none");
+  });
+
+  ngs.each(function(d){
+    if(!d.depth) return;
+    const g=d3.select(this);
+    const isLeaf=!d.children;
+    const col=d.data.color||"#6B7694";
+    if(!isLeaf){
+      // Parent label — white stroke for light background
+      g.append("text").attr("class","lbl lbl-p")
+        .attr("x",0).attr("y",-d.r).attr("dy","1.25em")
+        .style("text-anchor","middle")
+        .style("font-weight",d.depth<=2?"800":"600")
+        .style("fill",col)
+        .style("stroke","rgba(250,251,253,.92)")
+        .style("stroke-width","5px")
+        .style("paint-order","stroke fill")
+        .text(d.data.name);
+    } else {
+      // Leaf label — dark text with white halo for light background
+      g.append("text").attr("class","lbl lbl-l")
+        .attr("x",0).attr("y",0).attr("dy","0.35em")
+        .style("text-anchor","middle").style("font-weight","600")
+        .style("fill","#1A1F36")
+        .style("stroke","rgba(255,255,255,.85)")
+        .style("stroke-width","3px")
+        .style("paint-order","stroke fill")
+        .text(d.data.name);
+    }
+  });
+
+  // Hit areas for interaction
+  ngs.each(function(d){
+    if(!d.depth) return;
+    const g=d3.select(this);
+    const hitR=d.children?Math.min(d.r*0.3,20):d.r;
+    g.append("circle").attr("class","hit").attr("r",hitR).attr("fill","transparent")
+      .on("click",(ev,nd)=>{ev.stopPropagation();onMapClick(ev,nd);})
+      .on("mouseover",(ev,nd)=>{ev.stopPropagation();onMapOver(ev,nd,this);})
+      .on("mouseout",(ev,nd)=>{ev.stopPropagation();onMapOut(ev,nd,this);});
+  });
+
+  svg.call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(1));
+  morph(1);buildLegend();
+}
+
+/* ── morph() — pixel-size-based label control, extended for 6 levels ── */
+function morph(k){
+  if(!ngs) return;
+  ngs.each(function(d){
+    const g=d3.select(this);
+    if(!d.depth){g.select(".nc").attr("fill","none").attr("stroke","none");return;}
+    const col=d.data.color||"#556080";
+    const pixelR = d.r * k;
+
+    // Circle styling per depth
+    let fa,sa,sw;
+    if(d.depth===1){
+      fa=lin(k,.4,2.5,.08,.02);
+      sa=lin(k,.1,2,.4,.1);
+      sw=Math.max(.8,2/k);
+      g.select(".nc-glow").style("stroke",rgba(col,lin(k,.3,2,.06,.015))).style("stroke-width",Math.max(2,6/k));
+    } else if(d.depth===2){
+      fa=lin(k,.3,2,.12,.05);
+      sa=lin(k,.2,1.5,.35,.12);
+      sw=Math.max(.5,1.5/k);
+    } else if(d.depth===3){
+      fa=lin(k,.5,3,.10,.04);
+      sa=lin(k,.3,2,.30,.10);
+      sw=Math.max(.4,1.2/k);
+    } else if(d.depth===4){
+      fa=lin(k,.8,4,.12,.06);
+      sa=lin(k,.5,3,.25,.10);
+      sw=Math.max(.3,1/k);
+    } else if(d.depth===5){
+      fa=lin(k,1,5,.15,.08);
+      sa=lin(k,.8,4,.20,.10);
+      sw=Math.max(.25,.8/k);
+    } else {
+      // depth 6+ (leaves)
+      fa=lin(k,.5,3,.45,.75);
+      sa=.6;
+      sw=Math.max(.3,1.2/k);
+    }
+
+    g.select(".nc").attr("fill",rgba(col,fa)).attr("stroke",rgba(col,sa)).attr("stroke-width",sw);
+
+    // ─── VISIBILITY LOGIC: pixel-size-based label hiding ───
+    let nodeOpacity, labelOpacity;
+
+    if(d.depth===1){
+      nodeOpacity = 1;
+      labelOpacity = pixelR > 30 ? 1 : lin(pixelR, 15, 30, 0, 1);
+    } else if(d.depth===2){
+      nodeOpacity = lin(pixelR, 5, 15, 0, 1);
+      labelOpacity = pixelR > 25 ? lin(k,.4,1,0,1) : 0;
+    } else if(d.depth===3){
+      nodeOpacity = lin(pixelR, 4, 12, 0, 1);
+      labelOpacity = pixelR > 22 ? lin(k,.5,1.5,0,1) : 0;
+    } else if(d.depth===4){
+      nodeOpacity = lin(pixelR, 3, 10, 0, 1);
+      labelOpacity = pixelR >= 20 ? 1 : 0;
+    } else if(d.depth===5){
+      nodeOpacity = lin(pixelR, 3, 8, 0, 1);
+      labelOpacity = pixelR >= 18 ? 1 : 0;
+    } else {
+      // depth 6+ (leaves)
+      nodeOpacity = lin(pixelR, 3, 10, 0, 1);
+      labelOpacity = pixelR >= 20 ? 1 : 0;
+    }
+
+    g.attr("opacity", nodeOpacity);
+    g.select(".hit").style("pointer-events", nodeOpacity < 0.1 ? "none" : "all");
+
+    // Font size: scale inversely with zoom
+    const baseFontSize = d.depth<=1 ? 18 : d.depth===2 ? 15 : d.depth===3 ? 13 : d.depth===4 ? 12 : 11;
+    const fs = baseFontSize / k;
+    const maxFontPx = d.r * (d.children ? 0.4 : 1.6);
+    const effectiveLabelOp = fs > maxFontPx ? 0 : labelOpacity;
+
+    g.selectAll(".lbl")
+      .style("font-size", `${fs}px`)
+      .attr("opacity", effectiveLabelOp)
+      .style("transition", "opacity 0.15s ease");
+
+    g.selectAll(".lbl-p").style("stroke-width", `${Math.min(fs*.3,6)}px`);
+    g.selectAll(".lbl-l").style("stroke-width", `${Math.min(fs*.25,4)}px`);
+  });
+}
+
+function zoomToNode(d){
+  const{W:w,H:h}=wh();
+  const sc=clamp(Math.min(w,h)*.38/d.r,.12,10);
+  svg.transition().duration(700).ease(d3.easeCubicInOut)
+    .call(zoom.transform,d3.zoomIdentity.translate(w/2-sc*d.cx,h/2-sc*d.cy).scale(sc));
+}
+
+function onMapClick(ev,d){
+  if(!d.depth) return;
+  zoomToNode(d);openMapSidebar(d);
+  document.getElementById("bc").textContent=d.ancestors().reverse().slice(1).map(a=>a.data.name).join(" › ");
+}
+svg.on("click.bg",()=>{document.getElementById("sb-empty").style.display="";document.getElementById("sb-det").classList.remove("on");});
+
+const tip=document.getElementById("tip");
+function onMapOver(ev,d,gEl){
+  if(d.children) d3.select(gEl).attr("transform",`translate(${d.cx},${d.cy}) scale(1.05)`);
+  tip.style.opacity="1";
+  tip.textContent=d.data.name+(d.data.updated?" · "+d.data.updated:"");
+  tip.style.left=(ev.clientX+14)+"px";tip.style.top=(ev.clientY-6)+"px";
+}
+function onMapOut(ev,d,gEl){
+  d3.select(gEl).attr("transform",`translate(${d.cx},${d.cy})`);
+  tip.style.opacity="0";
+}
+
+function openMapSidebar(d){
+  const col=d.data.color||"#4F6CF7";
+  let cat=d;while(cat.depth>1)cat=cat.parent;
+  document.getElementById("sb-empty").style.display="none";
+  document.getElementById("sb-det").classList.add("on");
+  const depthFull=["","上位項目","QCDE分類","要件項目","技術確認項目","因子","水準"];
+  const depthSkip=["","QCDE分類","要件項目","技術確認項目","因子","水準"];
+  const labels=mapMode==='full'?depthFull:depthSkip;
+  const dl=labels[d.depth]||"ノード";
+  document.getElementById("sb-type").textContent=`Lv${d.depth} — ${dl}`;
+  const bdg=document.getElementById("sb-bdg");
+  bdg.textContent=cat.data.name;bdg.style.background=rgba(col,.08);bdg.style.color=col;
+  document.getElementById("sb-name").textContent=d.data.name;
+  let h="";
+  if(d.data.parentLabel) h+=`<div class="ss"><div class="ss-t" style="color:${col}">上位項目</div><p class="ss-d">${d.data.parentLabel}</p></div>`;
+  if(d.data.fullName && d.data.fullName!==d.data.name) h+=`<div class="ss"><div class="ss-t" style="color:${col}">正式名称</div><p class="ss-d">${d.data.fullName}</p></div>`;
+  if(d.data.desc) h+=`<div class="ss"><div class="ss-t" style="color:${col}">概要</div><p class="ss-d">${d.data.desc}</p></div>`;
+  if(d.data.req) h+=`<div class="ss"><div class="ss-t" style="color:${col}">要件値</div><p class="ss-d">${d.data.req}</p></div>`;
+  if(d.data.kpi) h+=`<div class="ss"><div class="ss-t" style="color:${col}">KPI</div><p class="ss-d">${d.data.kpi}</p></div>`;
+  if(d.data.perspective) h+=`<div class="ss"><div class="ss-t" style="color:${col}">確認観点</div><p class="ss-d">${d.data.perspective}</p></div>`;
+  // Path breadcrumb
+  const path=d.ancestors().reverse().slice(1).map(a=>a.data.name);
+  if(path.length>1) h+=`<div class="ss"><div class="ss-t" style="color:${col}">パス</div><p class="ss-d" style="font-size:11px;word-break:break-all">${path.join(" › ")}</p></div>`;
+  const metas=[["深さ",`Lv${d.depth} (${dl})`]];
+  if(d.data.updated)metas.unshift(["最終更新",d.data.updated]);
+  if(d.children)metas.push(["子ノード数",d.children.length+"件"]);
+  if(!d.children)metas.push(["タイプ","リーフノード"]);
+  h+=`<div class="ss"><div class="ss-t" style="color:${col}">情報</div>${metas.map(([k,v])=>`<div class="mr"><span class="mk">${k}</span><span class="mv">${v}</span></div>`).join("")}</div>`;
+  if(d.data.tags?.length) h+=`<div class="ss"><div class="ss-t" style="color:${col}">タグ</div><div class="tr">${d.data.tags.map(t=>`<span class="tg">${t}</span>`).join("")}</div></div>`;
+  if(d.children?.length) h+=`<div class="ss"><div class="ss-t" style="color:${col}">子ノード</div>${d.children.map(c=>`<div class="chr" onclick="goMapChild(event,${mapNodes.indexOf(c)})"><div class="chd" style="background:${c.data.color||col}"></div><span style="color:var(--t1)">${c.data.name}</span></div>`).join("")}</div>`;
+  h+=`<div class="ss"><div class="ss-t" style="color:var(--t3)">コメント</div><textarea class="cmtx" rows="3" placeholder="コメントを入力..."></textarea></div>`;
+  document.getElementById("sb-body").innerHTML=h;
+}
+
+window.goMapChild=(ev,idx)=>{ev.stopPropagation();const d=mapNodes[idx];if(d){zoomToNode(d);openMapSidebar(d);}};
+
+function buildLegend(){
+  document.getElementById("litems").innerHTML=
+    mapNodes.filter(n=>n.depth===1).map(n=>`<div class="li"><div class="ld" style="background:${n.data.color}"></div><span>${n.data.name}</span></div>`).join("");
+}
+
+/* ════════════════════════════════════════
+   LIST VIEW
+════════════════════════════════════════ */
+function buildListView(){
+  document.getElementById("lb").innerHTML=CATS.flatMap(cat=>
+    cat.subs.flatMap(sub=>sub.items.map(it=>{
+      const col=cat.themeColor;
+      return `<tr>
+        <td><span class="ll">${it.name}</span></td>
+        <td><span class="dbadge" style="background:${rgba(col,.08)};color:${col}">${cat.title}</span></td>
+        <td style="color:var(--t2);font-size:12px">${sub.name}</td>
+        <td>${stBadge(it.status)}</td>
+        <td style="color:var(--t3);font-size:11px;font-variant-numeric:tabular-nums">${it.date}</td>
+      </tr>`;
+    }))
+  ).join("");
+}
+
+/* ════════════════════════════════════════
+   CHECK VIEW (5M+E)
+════════════════════════════════════════ */
+const CK=[
+  {ico:"👤",lbl:"Man（人）",sub:"人外乱タフネス(ダイ/ノーズピース/パンチ/リベット取付)",kw:["人外乱","人による"],st:"ok"},
+  {ico:"⚙️",lbl:"Machine（設備）",sub:"サイクルタイム・信頼性・検査機能・量産管理",kw:["サイクルタイム","エアー流量","信頼性","加圧カーブ","リベット検知","ヘッドハイト","量産管理"],st:"ok"},
+  {ico:"🧪",lbl:"Material（材料）",sub:"ADC品質・リベット・ダイ・ノーズピース材料特性",kw:["ADC","リベット強度","ダイ熱処理","リベット寸法"],st:"ok"},
+  {ico:"📋",lbl:"Method（方法）",sub:"クラックメカニズム・リペア手法・板組範囲",kw:["クラックメカニズム","リペア","板組範囲"],st:"ok"},
+  {ico:"📏",lbl:"Measurement（計測）",sub:"ヘッドハイト管理・加圧カーブ・管理幅設定",kw:["ヘッドハイト管理","管理幅","波形ノイズ"],st:"ok"},
+  {ico:"🌍",lbl:"Environment（環境）",sub:"法規・安全基準・スペース・GLOBAL標準化",kw:["法規","HM安全","スペース","GLOBAL板組"],st:"partial"},
+];
+function buildCheckView(){
+  const allIt=CATS.flatMap(c=>c.subs.flatMap(s=>s.items));
+  document.getElementById("ck-rows").innerHTML=CK.map(item=>{
+    const matched=allIt.filter(it=>item.kw.some(kw=>it.name.includes(kw)));
+    return `<div class="ck-row">
+      <div class="ck-ico">${item.ico}</div>
+      <div style="flex:1">
+        <div class="ck-lbl">${item.lbl}</div>
+        <div class="ck-sub2">${item.sub}</div>
+        ${matched.length?`<div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:4px">${matched.slice(0,6).map(it=>`<span class="tg">${it.name}</span>`).join("")}</div>`:""}
+      </div>
+      <span class="ck-st ${item.st==="ok"?"ok":"partial"}">${item.st==="ok"?"✅ 確認済":"⚠ 一部未確認"}</span>
+    </div>`;
+  }).join("");
+}
+
+/* ════════════════════════════════════════
+   TAB SWITCHER
+════════════════════════════════════════ */
+let _mapBuilt=false;
+function switchTab(tab){
+  document.querySelectorAll(".tb").forEach(b=>b.classList.toggle("on",b.getAttribute("onclick").includes(`'${tab}'`)));
+  document.getElementById("ov").classList.toggle("hide",tab!=="ov");
+  document.getElementById("map-wrap").classList.toggle("on",tab==="map");
+  document.getElementById("lv").classList.toggle("on",tab==="list");
+  document.getElementById("cv2").classList.toggle("on",tab==="check");
+  if(tab==="map"&&!_mapBuilt){buildMap();_mapBuilt=true;}
+  if(tab==="map"&&_mapBuilt){/* already built, toggle handles rebuild */}
+}
+
+document.getElementById("bzi").onclick=()=>svg.transition().duration(250).call(zoom.scaleBy,1.4);
+document.getElementById("bzo").onclick=()=>svg.transition().duration(250).call(zoom.scaleBy,.72);
+document.getElementById("bzr").onclick=()=>{
+  const{W:w,H:h}=wh();
+  svg.transition().duration(650).ease(d3.easeCubicInOut).call(zoom.transform,d3.zoomIdentity.translate(w/2,h/2).scale(1));
+  document.getElementById("bc").textContent="Knowledge Hub";
+};
+
+document.getElementById("hd-srch").addEventListener("input",function(){
+  const q=this.value.toLowerCase().trim();
+  if(!q) return;
+  const found=CATS.find(c=>
+    c.title.toLowerCase().includes(q)||
+    c.subs.some(s=>s.name.toLowerCase().includes(q)||s.items.some(i=>i.name.toLowerCase().includes(q)))
+  );
+  if(found&&!document.getElementById("ov").classList.contains("hide")){
+    const el=document.getElementById(`cc-${found.id}`);
+    if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.focus();}
+  }
+});
+
+let _rt;
+window.addEventListener("resize",()=>{clearTimeout(_rt);_rt=setTimeout(()=>{if(_mapBuilt)buildMap();},150);});
+
+/* INIT */
+buildOverview();
+buildListView();
+buildCheckView();
+</script>
+</body>
+</html>

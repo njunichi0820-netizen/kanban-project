@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Pencil, Trash2, ChevronDown, ChevronRight, Plus, Check, Clock, Copy, Archive, Flame, ExternalLink, Sparkles, Loader2 } from 'lucide-react';
+import { GripVertical, Pencil, Trash2, ChevronDown, ChevronRight, Plus, Check, Clock, Copy, Archive, Flame, ExternalLink, Sparkles, Loader2, Map } from 'lucide-react';
 import { COLUMNS } from '../constants';
+import { TRL_LEVELS } from '../constants/mapConstants';
 import { useAIAdvice } from '../hooks/useAIAdvice';
 
 function formatDate(ts) {
@@ -140,6 +141,19 @@ export default function TaskCard({ task, columnId, isExpanded, onToggleExpand, o
             {links.length > 0 && (
               <span className="text-[10px] text-blue-400">
                 <ExternalLink size={10} className="inline" /> {links.length}
+              </span>
+            )}
+            {task.mapNodeId && (
+              <span className="text-[10px] text-indigo-400">
+                <Map size={10} className="inline" />
+              </span>
+            )}
+            {task.verificationLevel && (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{
+                background: (TRL_LEVELS.find(l => l.level === task.verificationLevel)?.color || '#ccc') + '20',
+                color: TRL_LEVELS.find(l => l.level === task.verificationLevel)?.color || '#888',
+              }}>
+                TRL{task.verificationLevel}
               </span>
             )}
           </div>

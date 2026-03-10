@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 
 const GITHUB_API = 'https://api.github.com';
 
-export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, points, setPoints, tags, setTags) {
+export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, points, setPoints, tags, setTags, mapNodes, setMapNodes, nodeStates, setNodeStates) {
   const [gistId, setGistId] = useState(() => localStorage.getItem('kanban-gist-id') || '');
   const [token, setToken] = useState(() => localStorage.getItem('kanban-gh-token') || '');
   const [syncing, setSyncing] = useState(false);
@@ -49,6 +49,12 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, p
         if (data.tags && Array.isArray(data.tags) && setTags) {
           setTags(data.tags);
         }
+        if (data.mapNodes && Array.isArray(data.mapNodes) && setMapNodes) {
+          setMapNodes(data.mapNodes);
+        }
+        if (data.nodeStates && setNodeStates) {
+          setNodeStates(data.nodeStates);
+        }
         setLastSynced(new Date());
         return true;
       }
@@ -59,10 +65,10 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, p
     } finally {
       setSyncing(false);
     }
-  }, [gistId, token, setTasks, setArchivedTasks, setPoints, setTags]);
+  }, [gistId, token, setTasks, setArchivedTasks, setPoints, setTags, setMapNodes, setNodeStates]);
 
   // Upload to Gist
-  const uploadTasks = useCallback(async (data, archived, pts, tgs) => {
+  const uploadTasks = useCallback(async (data, archived, pts, tgs, mn, ns) => {
     if (!isConfigured) return;
     setSyncing(true);
     setError(null);
@@ -71,6 +77,8 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, p
       if (archived) payload.archivedTasks = archived;
       if (pts) payload.points = pts;
       if (tgs) payload.tags = tgs;
+      if (mn) payload.mapNodes = mn;
+      if (ns) payload.nodeStates = ns;
       const res = await fetch(`${GITHUB_API}/gists/${gistId}`, {
         method: 'PATCH',
         headers: {
@@ -110,10 +118,10 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, p
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {
       if (Date.now() < suppressUntil.current) return;
-      uploadTasks(tasks, archivedTasks, points, tags);
+      uploadTasks(tasks, archivedTasks, points, tags, mapNodes, nodeStates);
     }, 3000);
     return () => clearTimeout(debounceTimer.current);
-  }, [tasks, archivedTasks, points, tags, isConfigured, uploadTasks]);
+  }, [tasks, archivedTasks, points, tags, mapNodes, nodeStates, isConfigured, uploadTasks]);
 
   // Create new Gist
   const createGist = useCallback(async (ghToken) => {
@@ -124,6 +132,8 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, p
       if (archivedTasks) payload.archivedTasks = archivedTasks;
       if (points) payload.points = points;
       if (tags) payload.tags = tags;
+      if (mapNodes) payload.mapNodes = mapNodes;
+      if (nodeStates) payload.nodeStates = nodeStates;
       const res = await fetch(`${GITHUB_API}/gists`, {
         method: 'POST',
         headers: {
@@ -155,7 +165,7 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, p
     } finally {
       setSyncing(false);
     }
-  }, [tasks, archivedTasks, points, tags]);
+  }, [tasks, archivedTasks, points, tags, mapNodes, nodeStates]);
 
   // Setup with existing Gist
   const setupSync = useCallback(async (ghToken, existingGistId) => {
@@ -171,8 +181,10 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, p
     if (archivedTasks) payload.archivedTasks = archivedTasks;
     if (points) payload.points = points;
     if (tags) payload.tags = tags;
+    if (mapNodes) payload.mapNodes = mapNodes;
+    if (nodeStates) payload.nodeStates = nodeStates;
     return JSON.stringify(payload, null, 2);
-  }, [tasks, archivedTasks, points, tags]);
+  }, [tasks, archivedTasks, points, tags, mapNodes, nodeStates]);
 
   // Import
   const importData = useCallback((jsonStr) => {
@@ -190,13 +202,19 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, p
         if (data.tags && Array.isArray(data.tags) && setTags) {
           setTags(data.tags);
         }
+        if (data.mapNodes && Array.isArray(data.mapNodes) && setMapNodes) {
+          setMapNodes(data.mapNodes);
+        }
+        if (data.nodeStates && setNodeStates) {
+          setNodeStates(data.nodeStates);
+        }
         return true;
       }
       return false;
     } catch {
       return false;
     }
-  }, [setTasks, setArchivedTasks, setPoints, setTags]);
+  }, [setTasks, setArchivedTasks, setPoints, setTags, setMapNodes, setNodeStates]);
 
   return {
     gistId,
@@ -208,7 +226,7 @@ export function useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, p
     createGist,
     setupSync,
     syncNow: () => downloadTasks(),
-    pushNow: () => uploadTasks(tasks, archivedTasks, points, tags),
+    pushNow: () => uploadTasks(tasks, archivedTasks, points, tags, mapNodes, nodeStates),
     exportData,
     importData,
     clearSync: () => {

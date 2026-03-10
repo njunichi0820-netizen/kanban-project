@@ -9,7 +9,7 @@ import {
   DragOverlay,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { ChevronLeft, ChevronRight, Plus, LayoutGrid, List, Cloud, CloudOff, Kanban, Palette, Archive, BarChart3, HelpCircle, Mic } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, LayoutGrid, List, Cloud, CloudOff, Kanban, Palette, Archive, BarChart3, HelpCircle, Mic, Map } from 'lucide-react';
 import Column from './components/Column';
 import TaskCard from './components/TaskCard';
 import TaskModal from './components/TaskModal';
@@ -20,10 +20,12 @@ import BoardFilter from './components/BoardFilter';
 import ArchivePanel from './components/ArchivePanel';
 import StatsView from './components/StatsView';
 import VoiceInput from './components/VoiceInput';
+import MapView from './components/MapView';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useCloudSync } from './hooks/useCloudSync';
 import { useKarma } from './hooks/useKarma';
 import { useVoiceTask } from './hooks/useVoiceTask';
+import { useMapData } from './hooks/useMapData';
 import { COLUMNS, DEFAULT_TAGS, GTD_DETAILS } from './constants';
 
 class ErrorBoundary extends Component {
@@ -55,7 +57,7 @@ class ErrorBoundary extends Component {
   }
 }
 
-const VIEW_MODES = ['board', 'list', 'stats'];
+const VIEW_MODES = ['board', 'list', 'stats', 'map'];
 
 function App() {
   const [tasks, setTasks] = useLocalStorage('kanban-tasks', []);
@@ -82,8 +84,30 @@ function App() {
   const searchInputRef = useRef(null);
 
   const { points, setPoints, onTaskCreate, onTaskComplete, onSubtaskComplete, getLevel, getDailyData, getWeeklyData } = useKarma();
-  const sync = useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, points, setPoints, tags, setTags);
   const voice = useVoiceTask();
+  const mapData = useMapData();
+  const sync = useCloudSync(tasks, setTasks, archivedTasks, setArchivedTasks, points, setPoints, tags, setTags, mapData.mapNodes, mapData.setMapNodes, mapData.nodeStates, mapData.setNodeStates);
+
+  // Map integration handlers
+  const handleMapCreateTask = useCallback((mapInfo) => {
+    setEditingTask(null);
+    setDefaultColumn('todo');
+    setModalOpen(true);
+    // Store map info for TaskModal to use
+    window.__pendingMapNodeId = mapInfo.mapNodeId;
+    window.__pendingMapTreePath = mapInfo.treePath;
+  }, []);
+
+  const handleMapCompleteTask = useCallback((nodeId) => {
+    // Find linked tasks and move to done
+    setTasks(prev => prev.map(t => {
+      if (t.mapNodeId === nodeId && t.column !== 'done') {
+        onTaskComplete();
+        return { ...t, column: 'done', updatedAt: Date.now() };
+      }
+      return t;
+    }));
+  }, [setTasks, onTaskComplete]);
 
   const handleVoiceTasks = useCallback((voiceTasks) => {
     const newTasks = voiceTasks.map((t) => ({
@@ -157,6 +181,8 @@ function App() {
         setViewMode('list');
       } else if (e.key === '3') {
         setViewMode('stats');
+      } else if (e.key === '4') {
+        setViewMode('map');
       } else if (e.key === 'a' || e.key === 'A') {
         e.preventDefault();
         setArchivePanelOpen((v) => !v);
@@ -232,6 +258,10 @@ function App() {
         onTaskComplete();
         setCompletionEffect(true);
         setTimeout(() => setCompletionEffect(false), 2000);
+        // Sync to map: mark linked map node as completed
+        if (task.mapNodeId) {
+          mapData.setNodeState(task.mapNodeId, { completed: true });
+        }
       }
       return prev.map((t) => (t.id === taskId ? { ...t, column: newColumnId, updatedAt: Date.now() } : t));
     });
@@ -499,6 +529,7 @@ function App() {
     { id: 'board', label: 'ボード', desc: 'カンバン形式でタスクを管理', icon: LayoutGrid },
     { id: 'list', label: 'リスト', desc: '一覧でタスクを検索・ソート', icon: List },
     { id: 'stats', label: '統計', desc: 'ポイントと進捗を確認', icon: BarChart3 },
+    { id: 'map', label: 'マップ', desc: 'ナレッジマップで全体を俯瞰', icon: Map },
   ];
 
   // Tab buttons — card style (image reference)
@@ -605,6 +636,7 @@ function App() {
             ['1', 'ボード表示'],
             ['2', 'リスト表示'],
             ['3', '統計表示'],
+            ['4', 'マップ表示'],
             ['A', 'アーカイブを開く'],
             ['Esc', 'パネル / モーダルを閉じる'],
             ['?', 'ショートカット一覧'],
@@ -677,7 +709,18 @@ function App() {
           </div>
         </header>
 
-        {viewMode === 'stats' ? (
+        {viewMode === 'map' ? (
+          <div className="flex-1 min-h-0">
+            <ErrorBoundary>
+              <MapView
+                mapData={mapData}
+                tasks={tasks}
+                onCreateTask={handleMapCreateTask}
+                onCompleteTask={handleMapCompleteTask}
+              />
+            </ErrorBoundary>
+          </div>
+        ) : viewMode === 'stats' ? (
           <div
             className="flex-1 min-h-0"
             onTouchStart={handleViewTouchStart}
@@ -864,7 +907,16 @@ function App() {
         <ViewTabs />
       </header>
 
-      {viewMode === 'stats' ? (
+      {viewMode === 'map' ? (
+        <ErrorBoundary>
+          <MapView
+            mapData={mapData}
+            tasks={tasks}
+            onCreateTask={handleMapCreateTask}
+            onCompleteTask={handleMapCompleteTask}
+          />
+        </ErrorBoundary>
+      ) : viewMode === 'stats' ? (
         <ErrorBoundary>
           <StatsView tasks={tasks} tags={tags} points={points} getLevel={getLevel} getDailyData={getDailyData} getWeeklyData={getWeeklyData} />
         </ErrorBoundary>
