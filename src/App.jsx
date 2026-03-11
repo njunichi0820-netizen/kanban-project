@@ -717,6 +717,7 @@ function App() {
                 tasks={tasks}
                 onCreateTask={handleMapCreateTask}
                 onCompleteTask={handleMapCompleteTask}
+                isMobile={isMobile}
               />
             </ErrorBoundary>
           </div>
@@ -914,6 +915,7 @@ function App() {
             tasks={tasks}
             onCreateTask={handleMapCreateTask}
             onCompleteTask={handleMapCompleteTask}
+            isMobile={isMobile}
           />
         </ErrorBoundary>
       ) : viewMode === 'stats' ? (

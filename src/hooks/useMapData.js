@@ -2,13 +2,13 @@ import { useCallback, useMemo } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 import { RAW_DATA } from '../data/rawMapData';
 
-// Flatten RAW_DATA tree into flat node array with IDs
-function flattenTree(node, parentId = null, level = 0, idPrefix = '') {
-  const id = idPrefix || 'root';
+// Flatten RAW_DATA tree into flat node array with path-based IDs
+function flattenTree(node, parentPath = null, level = 0) {
+  const myPath = parentPath ? `${parentPath}::${node.name}` : node.name;
   const result = [{
-    id,
+    id: myPath,
     name: node.name,
-    parentId,
+    parentId: parentPath,
     level,
     color: node.color || '#6B7694',
     perspective: node.perspective || '',
@@ -19,13 +19,15 @@ function flattenTree(node, parentId = null, level = 0, idPrefix = '') {
   }];
 
   if (node.children) {
-    node.children.forEach((child, i) => {
-      const childId = `${id}_${i}`;
-      result.push(...flattenTree(child, id, level + 1, childId));
-    });
+    node.children.forEach(child => result.push(...flattenTree(child, myPath, level + 1)));
   }
 
   return result;
+}
+
+// Helper: generate stable path-based ID from D3 node's ancestor chain (excluding root)
+export function getNodeIdFromD3(d) {
+  return d.ancestors().reverse().slice(1).map(a => a.data.name).join('::');
 }
 
 // Build D3 hierarchy from flat nodes
@@ -77,9 +79,8 @@ export function useMapData() {
     setMapNodes(prev => {
       const parent = prev.find(n => n.id === parentId);
       const level = parent ? parent.level + 1 : 1;
-      const siblingCount = prev.filter(n => n.parentId === parentId).length;
       const newNode = {
-        id: `${parentId}_custom_${Date.now()}`,
+        id: `${parentId}::${name}_${Date.now()}`,
         name,
         parentId,
         level,

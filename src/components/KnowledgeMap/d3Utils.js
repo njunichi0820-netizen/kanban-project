@@ -11,6 +11,11 @@ const lin = (k, k0, k1, v0, v1) => v0 + (v1 - v0) * clamp((k - k0) / (k1 - k0), 
 
 export { rgba, clamp, lin };
 
+// ── Path-based node ID helper ──
+export function getNodeId(d) {
+  return d.ancestors().reverse().slice(1).map(a => a.data.name).join('::');
+}
+
 // ── QCDE mode data transformation ──
 function getMapData(mode) {
   if (mode === 'full') return RAW_DATA;
@@ -220,37 +225,75 @@ export function morph(k, ngs) {
 }
 
 /**
- * Apply completion/burning overlays (separate from morph to keep morph untouched)
+ * Apply completion/burning overlays using path-based node IDs
  */
 export function applyStatusOverlay(ngs, completedNodeIds, burningTaskNodeIds) {
   if (!ngs) return;
-  ngs.each(function (d) {
+  ngs.each(function(d) {
     const g = d3.select(this);
-    // Remove existing overlays
-    g.selectAll('.status-ring').remove();
+    g.selectAll('.status-overlay, .status-ring').remove();
+    if (!d.depth) return;
 
-    const nodeId = d.data?.nodeId;
-    if (!nodeId) return;
+    const nodeId = getNodeId(d);
+    const isLeaf = !d.children;
+    const isCompleted = completedNodeIds?.has(nodeId);
+    const isBurning = burningTaskNodeIds?.has(nodeId);
 
-    if (completedNodeIds?.has(nodeId)) {
-      g.insert("circle", ".hit")
-        .attr("class", "status-ring")
-        .attr("r", d.r + 1)
-        .style("fill", "none")
-        .style("stroke", "#10B981")
-        .style("stroke-width", Math.max(2, 3 / (d.r / 20)))
-        .style("stroke-dasharray", "4,2")
-        .style("pointer-events", "none");
+    if (isCompleted) {
+      // Fill with green - insert BEFORE hit circle
+      g.insert('circle', '.hit')
+        .attr('class', 'status-overlay')
+        .attr('r', d.r * 0.85)
+        .style('fill', isLeaf ? 'rgba(16,185,129,0.45)' : 'rgba(16,185,129,0.15)')
+        .style('stroke', '#10B981')
+        .style('stroke-width', isLeaf ? 2 : 1.5)
+        .style('stroke-dasharray', isLeaf ? 'none' : '4,2')
+        .style('pointer-events', 'none');
     }
 
-    if (burningTaskNodeIds?.has(nodeId)) {
-      g.insert("circle", ".hit")
-        .attr("class", "status-ring burning-ring")
-        .attr("r", d.r + 2)
-        .style("fill", "none")
-        .style("stroke", "#EF4444")
-        .style("stroke-width", 2)
-        .style("pointer-events", "none");
+    if (isBurning) {
+      g.insert('circle', '.hit')
+        .attr('class', 'status-ring burning-ring')
+        .attr('r', d.r + 2)
+        .style('fill', 'none')
+        .style('stroke', '#EF4444')
+        .style('stroke-width', 2)
+        .style('pointer-events', 'none');
+    }
+  });
+}
+
+/**
+ * Apply filter highlight — dim non-matching nodes
+ */
+export function applyFilterHighlight(ngs, matchingIds) {
+  if (!ngs) return;
+  if (!matchingIds || matchingIds.size === 0) {
+    // No filter: show all
+    ngs.each(function() { d3.select(this).style('opacity', null); });
+    return;
+  }
+  ngs.each(function(d) {
+    const nodeId = getNodeId(d);
+    // Show node if it matches OR any ancestor matches
+    const ancestorIds = d.ancestors().map(a => getNodeId(a));
+    const matches = matchingIds.has(nodeId) || ancestorIds.some(id => matchingIds.has(id));
+    d3.select(this).style('opacity', matches || d.depth === 0 ? 1 : 0.1);
+  });
+}
+
+/**
+ * Flash a node by nodeId (highlight animation for newly added nodes)
+ */
+export function flashNode(ngs, nodeId) {
+  if (!ngs) return;
+  ngs.each(function(d) {
+    if (getNodeId(d) === nodeId) {
+      const g = d3.select(this);
+      g.select('.nc')
+        .style('fill', 'rgba(79,108,247,0.6)')
+        .transition().duration(800)
+        .style('fill', null);
     }
   });
 }
