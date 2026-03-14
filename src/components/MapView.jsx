@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { X, Filter } from 'lucide-react';
-import CircleMap from './KnowledgeMap/CircleMap';
+import SunburstMap from './KnowledgeMap/SunburstMap';
 import NodeSidebar from './KnowledgeMap/NodeSidebar';
 import AddNodeModal from './KnowledgeMap/AddNodeModal';
 import ProgressBar from './KnowledgeMap/ProgressBar';
@@ -11,7 +11,7 @@ export default function MapView({ mapData, tasks, onCreateTask, onCompleteTask, 
   const {
     mapNodes, nodeStates, setNodeState, getNodeState,
     addNode, getProgress, completedNodeIds,
-    getNodesByConstraint,
+    getNodesByConstraint, treeData,
   } = mapData;
 
   const [selectedNode, setSelectedNode] = useState(null);
@@ -198,8 +198,9 @@ export default function MapView({ mapData, tasks, onCreateTask, onCompleteTask, 
 
         {/* Map */}
         <div className="flex-1 flex flex-col min-h-0">
-          <CircleMap
+          <SunburstMap
             mapMode={mapMode}
+            treeData={treeData}
             completedNodeIds={completedNodeIds}
             burningTaskNodeIds={burningTaskNodeIds}
             onNodeClick={handleNodeClick}
