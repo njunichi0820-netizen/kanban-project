@@ -92,15 +92,7 @@ export default function SunburstMap({
     svg.selectAll('*').remove();
     svg.attr('viewBox', `${-W / 2} ${-H / 2} ${W} ${H}`);
 
-    // Completed overlay pattern: gold diagonal stripes (no green!)
-    const defs = svg.append('defs');
-    const pat = defs.append('pattern')
-      .attr('id', 'done-pat').attr('patternUnits', 'userSpaceOnUse')
-      .attr('width', 6).attr('height', 6)
-      .attr('patternTransform', 'rotate(45)');
-    pat.append('rect').attr('width', 6).attr('height', 6).attr('fill', 'rgba(251,191,36,0.35)');
-    pat.append('line').attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 6)
-      .attr('stroke', '#F59E0B').attr('stroke-width', 2);
+    svg.append('defs');
 
     const data = mapMode === 'full' && externalTreeData ? externalTreeData : getMapData(mapMode);
     const root = d3.hierarchy(data)
@@ -132,25 +124,24 @@ export default function SunburstMap({
       .attr('stroke-width', 0.5)
       .style('cursor', 'pointer');
 
-    // ── Completed overlays (gold stripe, distinct from data colors) ──
+    // ── Completed overlays: white semi-transparent wash (grayed-out look) ──
     const completedOverlays = g.selectAll('path.done-overlay')
       .data(allDesc).join('path')
       .attr('class', 'done-overlay')
       .attr('d', d => arc(d.current))
-      .attr('fill', 'url(#done-pat)')
-      .attr('stroke', '#F59E0B')
-      .attr('stroke-width', 1.5)
+      .attr('fill', 'rgba(255,255,255,0.65)')
+      .attr('stroke', 'none')
       .style('pointer-events', 'none')
       .style('opacity', 0);
 
-    // ── Completed badge ── "✓" gold
+    // ── Completed badge: large dark "✓" ──
     const checkMarks = g.selectAll('text.check-mark')
       .data(allDesc).join('text')
       .attr('class', 'check-mark')
       .attr('transform', d => { const p = posFromAngle(d.current.x0, d.current.x1, d.current.y0, d.current.y1); return `translate(${p.x},${p.y})`; })
-      .attr('text-anchor', 'middle').attr('dy', '-0.6em')
-      .style('font-size', d => `${Math.max(8, Math.min(16, (d.current.y1 - d.current.y0) * 0.3))}px`)
-      .style('fill', '#D97706').style('font-weight', '900')
+      .attr('text-anchor', 'middle').attr('dy', '0.38em')
+      .style('font-size', d => `${Math.max(10, Math.min(22, (d.current.y1 - d.current.y0) * 0.45))}px`)
+      .style('fill', '#1E40AF').style('font-weight', '900')
       .style('pointer-events', 'none').style('opacity', 0)
       .text('✓');
 
@@ -437,7 +428,7 @@ export default function SunburstMap({
             {tooltip.trail && <div className="text-[9px] text-gray-300 mt-0.5 leading-tight">{tooltip.trail}</div>}
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[9px] text-gray-400">Lv{tooltip.depth}</span>
-              {tooltip.isCompleted && <span className="text-[9px] text-amber-300 font-bold">✓ 完了</span>}
+              {tooltip.isCompleted && <span className="text-[9px] text-blue-300 font-bold">✓ 完了</span>}
               {tooltip.isBurning && <span className="text-[9px] text-red-400 font-bold">炎上</span>}
             </div>
           </div>
@@ -467,8 +458,8 @@ export default function SunburstMap({
       <div className="absolute top-3 right-3 md:right-4 flex flex-col gap-0.5 bg-white/90 border border-gray-200 rounded-xl px-2.5 py-2 shadow-sm z-10">
         <div className="text-[8px] font-bold tracking-widest uppercase text-gray-400 mb-0.5">状態</div>
         <div className="flex items-center gap-1.5 text-[9px] text-gray-500">
-          <div className="w-3 h-3 rounded-sm" style={{ background: 'repeating-linear-gradient(45deg, rgba(251,191,36,0.35), rgba(251,191,36,0.35) 2px, #F59E0B 2px, #F59E0B 3px)', border: '1px solid #F59E0B' }} />
-          完了 ✓
+          <div className="w-3 h-3 rounded-sm bg-white/80 border border-gray-300 flex items-center justify-center text-[7px] font-black text-blue-800">✓</div>
+          完了
         </div>
         <div className="flex items-center gap-1.5 text-[9px] text-gray-500">
           <div className="w-3 h-3 rounded-sm bg-red-200 border border-red-400" />

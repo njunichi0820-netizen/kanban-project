@@ -77,12 +77,15 @@ export function useMapData() {
 
   const addNode = useCallback((parentId, name, color) => {
     setMapNodes(prev => {
-      const parent = prev.find(n => n.id === parentId);
+      // D3 getNodeId excludes root name, flat nodes include it — match both
+      const parent = prev.find(n => n.id === parentId)
+        || prev.find(n => n.id.endsWith(`::${parentId}`) && n.id.split('::').slice(1).join('::') === parentId);
+      const actualParentId = parent?.id || parentId;
       const level = parent ? parent.level + 1 : 1;
       const newNode = {
-        id: `${parentId}::${name}_${Date.now()}`,
+        id: `${actualParentId}::${name}_${Date.now()}`,
         name,
-        parentId,
+        parentId: actualParentId,
         level,
         color: color || parent?.color || '#6B7694',
         perspective: '',

@@ -109,7 +109,10 @@ export default function MapView({ mapData, tasks, onCreateTask, onCompleteTask, 
 
   const handleAddSibling = useCallback((name) => {
     if (!selectedNode?.nodeId) return;
-    const currentNode = mapNodes.find(n => n.id === selectedNode.nodeId);
+    const nodeId = selectedNode.nodeId;
+    // D3 getNodeId excludes root, flat nodes include it — match both
+    const currentNode = mapNodes.find(n => n.id === nodeId)
+      || mapNodes.find(n => n.id.endsWith(`::${nodeId}`) && n.id.split('::').slice(1).join('::') === nodeId);
     if (!currentNode?.parentId) return;
     addNode(currentNode.parentId, name, selectedNode.color);
     setLastAddedNodeId(null);
