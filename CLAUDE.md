@@ -12,6 +12,8 @@ SPR（Self-Piercing Rivet）技術検証項目のインタラクティブナレ�
 1. **`morph(k)` function** — ピクセルサイズベースのラベル表示制御。閾値(20px/25px/30px等)、lin()計算、baseFontSize設定を一切変更しないこと
 2. **`buildMap()` function** — D3 circle packing描画。glow effect、ラベルstroke色、hit area含む
 3. **Label stroke colors** — 親: `stroke:rgba(250,251,253,.92)` / リーフ: `stroke:rgba(255,255,255,.85)`
+4. **SunburstMap `updateLabels(k)`** — 深度別ラベルサイズ制御。`LABEL_PX`, `LABEL_MIN_SHOW` 定数、`arcThickness * 0.4` 上限、`screenPx` 計算ロジックを一切変更しないこと
+5. **SunburstMap 中央テキストのズーム制御** — `updateLabels` 内の `centerPx` / `maxSvgFs = innerRadius * 0.35` / `centerFs` 計算を変更しないこと
 
 ## Data hierarchy (6 levels)
 ```
