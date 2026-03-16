@@ -260,7 +260,7 @@ export default function SunburstMap({
       });
     const centerLabel = g.append('text').attr('class', 'center-label')
       .attr('text-anchor', 'middle').attr('dy', '-0.1em')
-      .style('font-size', '18px').style('font-weight', '700').style('fill', '#4B5563')
+      .style('font-size', '11px').style('font-weight', '700').style('fill', '#4B5563')
       .style('pointer-events', 'none').text(truncate(root.data.name, 14));
     const centerHint = g.append('text').attr('class', 'center-hint')
       .attr('text-anchor', 'middle').attr('dy', '1.4em')

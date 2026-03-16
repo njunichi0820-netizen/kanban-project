@@ -12,7 +12,7 @@ export const CATS = [
      ]},
    ]
   },
-  {id:"WE工場生産台数",title:"WE工場生産台数",icon:"📌",themeColor:"#10B981",
+  {id:"WE工場生産台数",title:"WE工場生産台数",icon:"📌",themeColor:"#0EA5E9",
    description:"WE工場生産台数",kpi:"1000UPD",
    subs:[
      {id:"s_D_サイクルタイム",name:"[D:設備] サイクルタイム",tags:["設備システム"],updated:"2025-06",items:[
@@ -156,7 +156,7 @@ export const CATS = [
      ]},
    ]
   },
-  {id:"-",title:"-",icon:"📌",themeColor:"#14B8A6",
+  {id:"-",title:"-",icon:"📌",themeColor:"#6366F1",
    description:"-",kpi:"-",
    subs:[
      {id:"s_M_環境負荷",name:"[M:管理] 環境負荷",tags:[],updated:"2025-06",items:[
@@ -198,14 +198,14 @@ export const RAW_DATA={name:"SPR テーマ企画連鎖",children:[
       {name:"投資",color:"#4F6CF7",req:"総投資ボルト以下",value:1},
     ]},
   ]},
-  {name:"WE工場生産台数",fullName:"WE工場生産台数",color:"#10B981",kpi:"1000UPD",children:[
-    {name:"D:設備",color:"#10B981",children:[
-      {name:"サイクルタイム",color:"#10B981",req:"4.9s 3.0s以下 (チャレンジ項目)",children:[
-        {name:"サイクルタイム検証",color:"#10B981",perspective:"Machine：設備",children:[
-          {name:"設備システム",color:"#10B981",children:[
-            {name:"エアー流量",color:"#10B981",value:1},
-            {name:"ホース長さ",color:"#10B981",value:1},
-            {name:"マガジン",color:"#10B981",value:1},
+  {name:"WE工場生産台数",fullName:"WE工場生産台数",color:"#0EA5E9",kpi:"1000UPD",children:[
+    {name:"D:設備",color:"#0EA5E9",children:[
+      {name:"サイクルタイム",color:"#0EA5E9",req:"4.9s 3.0s以下 (チャレンジ項目)",children:[
+        {name:"サイクルタイム検証",color:"#0EA5E9",perspective:"Machine：設備",children:[
+          {name:"設備システム",color:"#0EA5E9",children:[
+            {name:"エアー流量",color:"#0EA5E9",value:1},
+            {name:"ホース長さ",color:"#0EA5E9",value:1},
+            {name:"マガジン",color:"#0EA5E9",value:1},
           ]},
         ]},
       ]},
@@ -574,9 +574,9 @@ export const RAW_DATA={name:"SPR テーマ企画連鎖",children:[
       ]},
     ]},
   ]},
-  {name:"-",fullName:"-",color:"#14B8A6",kpi:"-",children:[
-    {name:"M:管理",color:"#14B8A6",children:[
-      {name:"環境負荷",color:"#14B8A6",req:"法規満足",value:1},
+  {name:"-",fullName:"-",color:"#6366F1",kpi:"-",children:[
+    {name:"M:管理",color:"#6366F1",children:[
+      {name:"環境負荷",color:"#6366F1",req:"法規満足",value:1},
     ]},
   ]},
   {name:"WE工場スペース",fullName:"WE工場スペース",color:"#EF4444",kpi:"72,000m2以内 (40,000m2@YO)",children:[

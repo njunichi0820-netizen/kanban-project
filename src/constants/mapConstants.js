@@ -37,7 +37,7 @@ export const DEPTH_LABELS_SKIP = ['', 'QCDE分類', '要件項目', '技術確�
 // QCDE色
 export const QCDE_COLORS = {
   'Q:品質': '#4F6CF7',
-  'C:コスト': '#14B8A6',
-  'D:設備': '#10B981',
+  'C:コスト': '#6366F1',
+  'D:設備': '#0EA5E9',
   'M:管理': '#F59E0B',
 };
