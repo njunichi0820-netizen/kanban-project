@@ -29,6 +29,12 @@ export default function MapView({ mapData, tasks, onCreateTask, onCompleteTask, 
     return ids;
   }, [tasks]);
 
+  const taskCountByNodeId = useMemo(() => {
+    const map = {};
+    tasks.forEach(t => { if (t.mapNodeId) map[t.mapNodeId] = (map[t.mapNodeId] || 0) + 1; });
+    return map;
+  }, [tasks]);
+
   const progress = useMemo(() => getProgress(null), [getProgress]);
 
   // Compute filter-matching node IDs
@@ -210,6 +216,7 @@ export default function MapView({ mapData, tasks, onCreateTask, onCompleteTask, 
             selectedNodeId={selectedNode?.nodeId}
             filterMatchIds={filterMatchIds}
             lastAddedNodeId={lastAddedNodeId}
+            taskCountByNodeId={taskCountByNodeId}
           />
         </div>
 

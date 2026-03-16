@@ -72,6 +72,7 @@ export default function SunburstMap({
   selectedNodeId,
   filterMatchIds,
   lastAddedNodeId,
+  taskCountByNodeId,
 }) {
   const containerRef = useRef(null);
   const svgRef = useRef(null);
@@ -80,7 +81,7 @@ export default function SunburstMap({
   const [tooltip, setTooltip] = useState(null);
 
   const propsRef = useRef({});
-  propsRef.current = { completedNodeIds, burningTaskNodeIds, filterMatchIds, selectedNodeId, onNodeClick };
+  propsRef.current = { completedNodeIds, burningTaskNodeIds, filterMatchIds, selectedNodeId, onNodeClick, taskCountByNodeId };
 
   // ══════════════════════════════════════════════════════
   // BUILD — only on mapMode / treeData change
@@ -144,8 +145,9 @@ export default function SunburstMap({
       .data(allDesc).join('path')
       .attr('class', 'done-overlay')
       .attr('d', d => arc(d.current))
-      .attr('fill', 'rgba(255,255,255,0.6)')
-      .attr('stroke', 'none')
+      .attr('fill', 'rgba(16,185,129,0.25)')
+      .attr('stroke', 'rgba(16,185,129,0.4)')
+      .attr('stroke-width', 1)
       .style('pointer-events', 'none')
       .style('opacity', 0);
 
@@ -201,7 +203,9 @@ export default function SunburstMap({
         const nodeId = getStableId(d);
         const trail = d.ancestors().reverse().slice(1).map(a => a.data.name).join(' › ');
         const rect = containerRef.current.getBoundingClientRect();
+        const taskCount = propsRef.current.taskCountByNodeId?.[nodeId] || 0;
         setTooltip({ x: ev.clientX - rect.left, y: ev.clientY - rect.top - 10, name: d.data.name, trail, depth: d.depth,
+          req: d.data.req || '', kpi: d.data.kpi || '', taskCount,
           isCompleted: propsRef.current.completedNodeIds?.has(nodeId),
           isBurning: propsRef.current.burningTaskNodeIds?.has(nodeId) });
         d3.select(ev.currentTarget).attr('stroke-width', 2.5).attr('stroke', d.data.color || '#4F6CF7');
@@ -224,6 +228,15 @@ export default function SunburstMap({
       .attr('r', innerR).attr('fill', 'rgba(255,255,255,0.97)')
       .attr('stroke', '#E5E7EB').attr('stroke-width', 1.5)
       .style('cursor', 'pointer')
+      .style('transition', 'fill 0.2s, stroke 0.2s')
+      .on('mouseover', function() {
+        d3.select(this).attr('fill', 'rgba(79,108,247,0.06)').attr('stroke', '#A5B4FC');
+        centerHint.style('fill', '#6366F1');
+      })
+      .on('mouseout', function() {
+        d3.select(this).attr('fill', 'rgba(255,255,255,0.97)').attr('stroke', '#E5E7EB');
+        centerHint.style('fill', '#9CA3AF');
+      })
       .on('click', (ev) => {
         ev.stopPropagation();
         const cur = stateRef.current.currentNode;
@@ -412,11 +425,18 @@ export default function SunburstMap({
 
       {tooltip && (
         <div className="absolute z-30 pointer-events-none" style={{ left: tooltip.x, top: tooltip.y, transform: 'translate(-50%, -100%)' }}>
-          <div className="bg-gray-900/80 backdrop-blur-sm text-white rounded-lg px-3 py-2 shadow-xl text-left max-w-[280px]">
+          <div className="bg-gray-900/80 backdrop-blur-sm text-white rounded-lg px-3 py-2 shadow-xl text-left max-w-[300px]">
             <div className="text-[11px] font-bold leading-tight">{tooltip.name}</div>
             {tooltip.trail && <div className="text-[9px] text-gray-300 mt-0.5 leading-tight">{tooltip.trail}</div>}
+            {(tooltip.req || tooltip.kpi) && (
+              <div className="mt-1 space-y-0.5">
+                {tooltip.req && <div className="text-[9px] text-amber-200 leading-tight">要件: {tooltip.req}</div>}
+                {tooltip.kpi && <div className="text-[9px] text-sky-200 leading-tight">KPI: {tooltip.kpi}</div>}
+              </div>
+            )}
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[9px] text-gray-400">Lv{tooltip.depth}</span>
+              {tooltip.taskCount > 0 && <span className="text-[9px] text-indigo-300">タスク {tooltip.taskCount}件</span>}
               {tooltip.isCompleted && <span className="text-[9px] text-emerald-300 font-bold">✓ 完了</span>}
               {tooltip.isBurning && <span className="text-[9px] text-red-400 font-bold">炎上</span>}
             </div>
