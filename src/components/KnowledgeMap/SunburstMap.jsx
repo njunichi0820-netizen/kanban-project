@@ -1,17 +1,14 @@
 import { useRef, useEffect, useCallback, useState } from 'react';
 import * as d3 from 'd3';
 import { RAW_DATA } from '../../data/rawMapData';
+import { rgba, QCDE_COLORS } from './d3Utils';
 
-// Use d.data.nodeId (flat node ID from treeData) when available, fallback to path-based
+// ── Sunburst-local utilities ──
+
+/** Stable ID: use flat nodeId when available, fallback to ancestor path */
 function getStableId(d) {
   if (d.data?.nodeId) return d.data.nodeId;
   return d.ancestors().reverse().slice(1).map(a => a.data.name).join('::');
-}
-
-function rgba(hex, a) {
-  if (!hex || hex[0] !== '#') return `rgba(107,118,148,${a})`;
-  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${a})`;
 }
 
 function truncate(s, max) {
@@ -19,13 +16,18 @@ function truncate(s, max) {
   return s.length > max ? s.slice(0, max - 1) + '…' : s;
 }
 
-// QCDE色定義 — fullモードでも統一して使う
-const QCDE_COLORS = {
-  "Q:品質": "#4F6CF7",
-  "C:コスト": "#14B8A6",
-  "D:設備": "#10B981",
-  "M:管理": "#F59E0B",
-};
+function arcVisible(d) {
+  return d.y1 > 0 && d.y0 >= 0 && d.x1 > d.x0 + 0.001;
+}
+
+/** Cartesian midpoint of an arc segment */
+function midpoint(x0, x1, y0, y1) {
+  const a = (x0 + x1) / 2;
+  const r = (y0 + y1) / 2;
+  return { x: r * Math.cos(a - Math.PI / 2), y: r * Math.sin(a - Math.PI / 2) };
+}
+
+// ── Data helpers (sunburst-specific) ──
 
 function getMapData(mode) {
   if (mode === 'full') return RAW_DATA;
@@ -57,15 +59,9 @@ function getArcFill(d) {
   return rgba(col, 0.12 + d.depth * 0.06);
 }
 
-function arcVisible(d) {
-  return d.y1 > 0 && d.y0 >= 0 && d.x1 > d.x0 + 0.001;
-}
-
-function posFromAngle(x0, x1, y0, y1) {
-  const a = (x0 + x1) / 2;
-  const r = (y0 + y1) / 2;
-  return { x: r * Math.cos(a - Math.PI / 2), y: r * Math.sin(a - Math.PI / 2) };
-}
+// ══════════════════════════════════════════════════════
+// Component
+// ══════════════════════════════════════════════════════
 
 export default function SunburstMap({
   mapMode = 'full',
@@ -97,10 +93,12 @@ export default function SunburstMap({
     if (W === 0 || H === 0) return;
     const radius = Math.min(W, H) / 2 * 0.92;
 
+    // 1. Setup: SVG viewBox
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
     svg.attr('viewBox', `${-W / 2} ${-H / 2} ${W} ${H}`);
 
+    // 2. Hierarchy: d3.hierarchy + partition + color propagation
     const data = mapMode === 'full' && externalTreeData ? externalTreeData : getMapData(mapMode);
     const root = d3.hierarchy(data)
       .sum(d => d.value || (d.children ? 0 : 1))
@@ -108,10 +106,8 @@ export default function SunburstMap({
 
     d3.partition().size([2 * Math.PI, radius])(root);
 
-    // Propagate colors — for full mode, use QCDE colors on depth-2 nodes
     root.each(d => {
       if (!d.data.color && d.parent) d.data.color = d.parent.data.color;
-      // Apply QCDE unified colors at depth 2
       if (d.depth === 2 && QCDE_COLORS[d.data.name]) {
         const qCol = QCDE_COLORS[d.data.name];
         d.data.color = qCol;
@@ -124,6 +120,7 @@ export default function SunburstMap({
     const g = svg.append('g').attr('class', 'sunburst-g');
     let curZoomK = 1;
 
+    // 3. Arc paths (main arcs)
     const arc = d3.arc()
       .startAngle(d => d.x0).endAngle(d => d.x1)
       .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.004))
@@ -133,7 +130,6 @@ export default function SunburstMap({
 
     const allDesc = root.descendants().filter(d => d.depth > 0);
 
-    // ── Arcs ──
     const paths = g.selectAll('path.arc')
       .data(allDesc).join('path')
       .attr('class', 'arc')
@@ -143,7 +139,7 @@ export default function SunburstMap({
       .attr('stroke-width', 0.5)
       .style('cursor', 'pointer');
 
-    // ── Completed: white wash overlay ──
+    // 4. Overlay layers (completed, burning, checkmarks)
     const completedOverlays = g.selectAll('path.done-overlay')
       .data(allDesc).join('path')
       .attr('class', 'done-overlay')
@@ -153,18 +149,16 @@ export default function SunburstMap({
       .style('pointer-events', 'none')
       .style('opacity', 0);
 
-    // ── Completed badge: green "✓" ──
     const checkMarks = g.selectAll('text.check-mark')
       .data(allDesc).join('text')
       .attr('class', 'check-mark')
-      .attr('transform', d => { const p = posFromAngle(d.current.x0, d.current.x1, d.current.y0, d.current.y1); return `translate(${p.x},${p.y})`; })
+      .attr('transform', d => { const p = midpoint(d.current.x0, d.current.x1, d.current.y0, d.current.y1); return `translate(${p.x},${p.y})`; })
       .attr('text-anchor', 'middle').attr('dy', '0.38em')
       .style('font-size', d => `${Math.max(10, Math.min(22, (d.current.y1 - d.current.y0) * 0.45))}px`)
       .style('fill', '#059669').style('font-weight', '900')
       .style('pointer-events', 'none').style('opacity', 0)
       .text('✓');
 
-    // ── Burning: red glow fill (not stroke lines) ──
     const burningOverlays = g.selectAll('path.burn-overlay')
       .data(allDesc).join('path')
       .attr('class', 'burn-overlay')
@@ -173,11 +167,11 @@ export default function SunburstMap({
       .attr('stroke', 'none')
       .style('pointer-events', 'none').style('opacity', 0);
 
-    // ── Labels ──
+    // 5. Labels + updateLabels()
     const labels = g.selectAll('text.lbl')
       .data(allDesc).join('text')
       .attr('class', 'lbl')
-      .attr('transform', d => { const p = posFromAngle(d.current.x0, d.current.x1, d.current.y0, d.current.y1); return `translate(${p.x},${p.y})`; })
+      .attr('transform', d => { const p = midpoint(d.current.x0, d.current.x1, d.current.y0, d.current.y1); return `translate(${p.x},${p.y})`; })
       .attr('text-anchor', 'middle').attr('dy', '0.35em')
       .style('font-weight', d => d.depth <= 2 ? '700' : '500')
       .style('fill', '#374151')
@@ -201,7 +195,7 @@ export default function SunburstMap({
     }
     updateLabels(1);
 
-    // ── Hover ──
+    // 6. Hover / tooltip
     paths
       .on('mouseover', (ev, d) => {
         const nodeId = getStableId(d);
@@ -224,7 +218,7 @@ export default function SunburstMap({
           .attr('stroke', sel ? '#4F6CF7' : rgba(d.data.color || '#6B7694', 0.25));
       });
 
-    // ── Center ──
+    // 7. Center circle + back navigation
     const innerR = root.children ? root.children[0].y0 : radius * 0.15;
     const centerCircle = g.append('circle').attr('class', 'center-circle')
       .attr('r', innerR).attr('fill', 'rgba(255,255,255,0.97)')
@@ -248,7 +242,7 @@ export default function SunburstMap({
       .style('font-size', '8px').style('fill', '#9CA3AF')
       .style('pointer-events', 'none').text('');
 
-    // ── Click ──
+    // 8. Click → select + drill
     paths.on('click', (ev, d) => {
       ev.stopPropagation();
       const nodeId = getStableId(d);
@@ -257,9 +251,7 @@ export default function SunburstMap({
     });
     svg.on('click.bg', () => propsRef.current.onNodeClick?.(null, null));
 
-    // ══════════════════════════════════════
-    // DRILL
-    // ══════════════════════════════════════
+    // 9. drillTo() function
     function drillTo(p) {
       stateRef.current.currentNode = p;
       setBreadcrumb(p.ancestors().reverse().map(d => ({ name: d.data.name, node: d, depth: d.depth })));
@@ -286,7 +278,7 @@ export default function SunburstMap({
         .style('opacity', d => !arcVisible(d.target) ? 0 : propsRef.current.completedNodeIds?.has(getStableId(d)) ? 1 : 0);
 
       checkMarks.transition(t)
-        .attrTween('transform', d => () => { const p = posFromAngle(d.current.x0, d.current.x1, d.current.y0, d.current.y1); return `translate(${p.x},${p.y})`; })
+        .attrTween('transform', d => () => { const p = midpoint(d.current.x0, d.current.x1, d.current.y0, d.current.y1); return `translate(${p.x},${p.y})`; })
         .style('opacity', d => !arcVisible(d.target) ? 0 : propsRef.current.completedNodeIds?.has(getStableId(d)) ? 1 : 0);
 
       burningOverlays.transition(t)
@@ -294,7 +286,7 @@ export default function SunburstMap({
         .style('opacity', d => !arcVisible(d.target) ? 0 : propsRef.current.burningTaskNodeIds?.has(getStableId(d)) ? 1 : 0);
 
       labels.transition(t)
-        .attrTween('transform', d => () => { const p = posFromAngle(d.current.x0, d.current.x1, d.current.y0, d.current.y1); return `translate(${p.x},${p.y})`; })
+        .attrTween('transform', d => () => { const p = midpoint(d.current.x0, d.current.x1, d.current.y0, d.current.y1); return `translate(${p.x},${p.y})`; })
         .on('end', () => updateLabels(curZoomK));
 
       const newR = p.depth === 0 ? innerR : Math.max((p.children?.[0]?.target?.y0 || radius * 0.08), radius * 0.06);
@@ -303,7 +295,7 @@ export default function SunburstMap({
       centerHint.text(p.depth === 0 ? '' : '↩ 戻る');
     }
 
-    // ── Zoom ──
+    // 10. Zoom behavior
     const zoomBehavior = d3.zoom().scaleExtent([0.3, 8])
       .on('zoom', (ev) => {
         g.attr('transform', ev.transform);
@@ -312,6 +304,7 @@ export default function SunburstMap({
       });
     svg.call(zoomBehavior).on('dblclick.zoom', null);
 
+    // 11. Store refs
     stateRef.current = {
       root, currentNode: root, paths, labels, completedOverlays, checkMarks, burningOverlays,
       arc, g, svg, zoomBehavior, centerCircle, centerLabel, centerHint, innerR, radius, drillTo, updateLabels,
@@ -325,6 +318,7 @@ export default function SunburstMap({
   // OVERLAY EFFECTS
   // ══════════════════════════════════════════════════════
 
+  // — Completion overlay sync
   useEffect(() => {
     const s = stateRef.current;
     if (!s.completedOverlays) return;
@@ -332,12 +326,14 @@ export default function SunburstMap({
     s.checkMarks?.style('opacity', d => !arcVisible(d.current) ? 0 : completedNodeIds?.has(getStableId(d)) ? 1 : 0);
   }, [completedNodeIds]);
 
+  // — Burning overlay sync
   useEffect(() => {
     const s = stateRef.current;
     if (!s.burningOverlays) return;
     s.burningOverlays.style('opacity', d => !arcVisible(d.current) ? 0 : burningTaskNodeIds?.has(getStableId(d)) ? 1 : 0);
   }, [burningTaskNodeIds]);
 
+  // — Selection highlight sync
   useEffect(() => {
     const s = stateRef.current;
     if (!s.paths) return;
@@ -349,6 +345,7 @@ export default function SunburstMap({
     });
   }, [selectedNodeId]);
 
+  // — Filter highlight sync
   useEffect(() => {
     const s = stateRef.current;
     if (!s.paths) return;
@@ -364,6 +361,7 @@ export default function SunburstMap({
     });
   }, [filterMatchIds]);
 
+  // — Flash new node
   useEffect(() => {
     const s = stateRef.current;
     if (!s.paths || !lastAddedNodeId) return;

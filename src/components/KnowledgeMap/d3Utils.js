@@ -9,6 +9,14 @@ const rgba = (hex, a) => {
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const lin = (k, k0, k1, v0, v1) => v0 + (v1 - v0) * clamp((k - k0) / (k1 - k0), 0, 1);
 
+// QCDE色定義 — サンバースト/サークルマップ共通
+export const QCDE_COLORS = {
+  "Q:品質": "#4F6CF7",
+  "C:コスト": "#14B8A6",
+  "D:設備": "#10B981",
+  "M:管理": "#F59E0B",
+};
+
 export { rgba, clamp, lin };
 
 // ── Path-based node ID helper ──
@@ -19,18 +27,17 @@ export function getNodeId(d) {
 // ── QCDE mode data transformation ──
 function getMapData(mode) {
   if (mode === 'full') return RAW_DATA;
-  const qcdeColors = { "Q:品質": "#4F6CF7", "C:コスト": "#14B8A6", "D:設備": "#10B981", "M:管理": "#F59E0B" };
   const groups = {};
   RAW_DATA.children.forEach(lv1 => {
     const parentShort = lv1.name;
     (lv1.children || []).forEach(lv2 => {
       const key = lv2.name;
-      if (!groups[key]) groups[key] = { name: key, color: qcdeColors[key] || lv2.color || lv1.color, children: [] };
+      if (!groups[key]) groups[key] = { name: key, color: QCDE_COLORS[key] || lv2.color || lv1.color, children: [] };
       (lv2.children || []).forEach(lv3 => {
         groups[key].children.push({
           ...lv3, name: lv3.name, parentLabel: parentShort,
           fullName: `${parentShort} › ${key} › ${lv3.name}`,
-          color: qcdeColors[key] || lv2.color || lv1.color,
+          color: QCDE_COLORS[key] || lv2.color || lv1.color,
           children: lv3.children ? JSON.parse(JSON.stringify(lv3.children)) : undefined,
           value: lv3.value,
         });
@@ -39,7 +46,7 @@ function getMapData(mode) {
         groups[key].children.push({
           name: lv2.name, parentLabel: parentShort,
           fullName: `${parentShort} › ${key}`,
-          color: qcdeColors[key] || lv2.color, value: 1,
+          color: QCDE_COLORS[key] || lv2.color, value: 1,
         });
       }
     });
