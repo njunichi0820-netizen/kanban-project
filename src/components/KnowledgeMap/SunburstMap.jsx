@@ -29,6 +29,11 @@ function midpoint(x0, x1, y0, y1) {
 
 // ── Data helpers (sunburst-specific) ──
 
+function paintColor(nodes, col) {
+  if (!nodes) return;
+  nodes.forEach(n => { n.color = col; if (n.children) paintColor(n.children, col); });
+}
+
 function getMapData(mode) {
   if (mode === 'full') return RAW_DATA;
   const groups = {};
@@ -39,11 +44,13 @@ function getMapData(mode) {
       const col = QCDE_COLORS[key] || lv2.color || lv1.color;
       if (!groups[key]) groups[key] = { name: key, color: col, children: [] };
       (lv2.children || []).forEach(lv3 => {
+        const cloned = lv3.children ? JSON.parse(JSON.stringify(lv3.children)) : undefined;
+        paintColor(cloned, col);
         groups[key].children.push({
           ...lv3, name: lv3.name, parentLabel: parentShort,
           fullName: `${parentShort} › ${key} › ${lv3.name}`,
           color: col,
-          children: lv3.children ? JSON.parse(JSON.stringify(lv3.children)) : undefined,
+          children: cloned,
           value: lv3.value,
         });
       });
@@ -107,13 +114,9 @@ export default function SunburstMap({
 
     d3.partition().size([2 * Math.PI, radius])(root);
 
+    // 色伝播: 親の色を子に継承（Lv1の色が全子孫に統一される）
     root.each(d => {
       if (!d.data.color && d.parent) d.data.color = d.parent.data.color;
-      if (d.depth === 2 && QCDE_COLORS[d.data.name]) {
-        const qCol = QCDE_COLORS[d.data.name];
-        d.data.color = qCol;
-        d.descendants().forEach(c => { if (c !== d) c.data.color = qCol; });
-      }
     });
 
     root.each(d => { d.current = { x0: d.x0, x1: d.x1, y0: d.y0, y1: d.y1 }; });
@@ -179,21 +182,39 @@ export default function SunburstMap({
       .style('fill', '#374151')
       .style('pointer-events', 'none');
 
+    // 深度別の目標ピクセルサイズ (画面上px)
+    const LABEL_PX = { 1: 16, 2: 14, 3: 12, 4: 11, 5: 10 };
+    const LABEL_MIN_SHOW = { 1: 30, 2: 18, 3: 12, 4: 10, 5: 8 };
+
     function updateLabels(k) {
       labels.each(function(d) {
         const span = (d.current.x1 - d.current.x0) * (d.current.y0 + d.current.y1) / 2;
         const screenSpan = span * k;
         const el = d3.select(this);
-        if (screenSpan < 10 || !arcVisible(d.current)) {
+        const minShow = LABEL_MIN_SHOW[d.depth] || 8;
+        if (screenSpan < minShow || !arcVisible(d.current)) {
           el.text('').style('opacity', 0);
           return;
         }
-        const baseFontSize = Math.max(7, Math.min(11, (d.current.y1 - d.current.y0) * 0.18));
-        const fs = baseFontSize / k;
+        const targetPx = LABEL_PX[d.depth] || 10;
+        const arcThickness = (d.current.y1 - d.current.y0) * k;
+        // 画面上pxをtargetに近づけつつ、アーク幅の40%を超えない
+        const screenPx = Math.min(targetPx, arcThickness * 0.4);
+        const fs = Math.max(screenPx, 7) / k;
         el.style('font-size', `${fs}px`).style('opacity', 1);
-        const maxChars = Math.max(2, Math.floor(screenSpan / 6));
+        const maxChars = Math.max(2, Math.floor(screenSpan / (screenPx * 0.55)));
         el.text(truncate(d.data.name, maxChars));
       });
+
+      // 中央テキストもズーム連動（初回呼び出し時は未定義のためガード）
+      if (stateRef.current.centerLabel) {
+        const innerRadius = stateRef.current.innerR || radius * 0.15;
+        const maxSvgFs = innerRadius * 0.35;
+        const centerPx = Math.min(24, Math.max(13, 18 / Math.sqrt(k)));
+        const centerFs = Math.min(centerPx / k, maxSvgFs);
+        stateRef.current.centerLabel.style('font-size', `${centerFs}px`);
+        stateRef.current.centerHint.style('font-size', `${centerFs * 0.55}px`);
+      }
     }
     updateLabels(1);
 
@@ -248,7 +269,7 @@ export default function SunburstMap({
       });
     const centerLabel = g.append('text').attr('class', 'center-label')
       .attr('text-anchor', 'middle').attr('dy', '-0.1em')
-      .style('font-size', '11px').style('font-weight', '700').style('fill', '#4B5563')
+      .style('font-size', '18px').style('font-weight', '700').style('fill', '#4B5563')
       .style('pointer-events', 'none').text(truncate(root.data.name, 14));
     const centerHint = g.append('text').attr('class', 'center-hint')
       .attr('text-anchor', 'middle').attr('dy', '1.4em')
