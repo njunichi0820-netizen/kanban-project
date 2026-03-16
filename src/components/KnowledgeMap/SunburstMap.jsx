@@ -74,7 +74,6 @@ export default function SunburstMap({
   mapMode = 'full',
   treeData: externalTreeData,
   completedNodeIds,
-  burningTaskNodeIds,
   onNodeClick,
   selectedNodeId,
   filterMatchIds,
@@ -88,7 +87,7 @@ export default function SunburstMap({
   const [tooltip, setTooltip] = useState(null);
 
   const propsRef = useRef({});
-  propsRef.current = { completedNodeIds, burningTaskNodeIds, filterMatchIds, selectedNodeId, onNodeClick, taskCountByNodeId };
+  propsRef.current = { completedNodeIds, filterMatchIds, selectedNodeId, onNodeClick, taskCountByNodeId };
 
   // ══════════════════════════════════════════════════════
   // BUILD — only on mapMode / treeData change
@@ -148,9 +147,10 @@ export default function SunburstMap({
       .data(allDesc).join('path')
       .attr('class', 'done-overlay')
       .attr('d', d => arc(d.current))
-      .attr('fill', 'rgba(16,185,129,0.25)')
-      .attr('stroke', 'rgba(16,185,129,0.4)')
+      .attr('fill', 'rgba(52,211,153,0.7)')
+      .attr('stroke', '#34D399')
       .attr('stroke-width', 1)
+      .style('filter', 'drop-shadow(0 0 6px rgba(52,211,153,0.8)) drop-shadow(0 0 12px rgba(16,185,129,0.4))')
       .style('pointer-events', 'none')
       .style('opacity', 0);
 
@@ -163,14 +163,6 @@ export default function SunburstMap({
       .style('fill', '#059669').style('font-weight', '900')
       .style('pointer-events', 'none').style('opacity', 0)
       .text('✓');
-
-    const burningOverlays = g.selectAll('path.burn-overlay')
-      .data(allDesc).join('path')
-      .attr('class', 'burn-overlay')
-      .attr('d', d => arc(d.current))
-      .attr('fill', 'rgba(239,68,68,0.25)')
-      .attr('stroke', 'none')
-      .style('pointer-events', 'none').style('opacity', 0);
 
     // 5. Labels + updateLabels()
     const labels = g.selectAll('text.lbl')
@@ -227,8 +219,7 @@ export default function SunburstMap({
         const taskCount = propsRef.current.taskCountByNodeId?.[nodeId] || 0;
         setTooltip({ x: ev.clientX - rect.left, y: ev.clientY - rect.top - 10, name: d.data.name, trail, depth: d.depth,
           req: d.data.req || '', kpi: d.data.kpi || '', taskCount,
-          isCompleted: propsRef.current.completedNodeIds?.has(nodeId),
-          isBurning: propsRef.current.burningTaskNodeIds?.has(nodeId) });
+          isCompleted: propsRef.current.completedNodeIds?.has(nodeId) });
         d3.select(ev.currentTarget).attr('stroke-width', 2.5).attr('stroke', d.data.color || '#4F6CF7');
       })
       .on('mousemove', (ev) => {
@@ -315,10 +306,6 @@ export default function SunburstMap({
         .attrTween('transform', d => () => { const p = midpoint(d.current.x0, d.current.x1, d.current.y0, d.current.y1); return `translate(${p.x},${p.y})`; })
         .style('opacity', d => !arcVisible(d.target) ? 0 : propsRef.current.completedNodeIds?.has(getStableId(d)) ? 1 : 0);
 
-      burningOverlays.transition(t)
-        .attrTween('d', d => () => arc(d.current))
-        .style('opacity', d => !arcVisible(d.target) ? 0 : propsRef.current.burningTaskNodeIds?.has(getStableId(d)) ? 1 : 0);
-
       labels.transition(t)
         .attrTween('transform', d => () => { const p = midpoint(d.current.x0, d.current.x1, d.current.y0, d.current.y1); return `translate(${p.x},${p.y})`; })
         .on('end', () => updateLabels(curZoomK));
@@ -340,10 +327,15 @@ export default function SunburstMap({
 
     // 11. Store refs
     stateRef.current = {
-      root, currentNode: root, paths, labels, completedOverlays, checkMarks, burningOverlays,
+      root, currentNode: root, paths, labels, completedOverlays, checkMarks,
       arc, g, svg, zoomBehavior, centerCircle, centerLabel, centerHint, innerR, radius, drillTo, updateLabels,
       getCurZoomK: () => curZoomK,
     };
+
+    // 初期描画時に完了・炎上状態を即反映
+    const p0 = propsRef.current;
+    completedOverlays.style('opacity', d => p0.completedNodeIds?.has(getStableId(d)) ? 1 : 0);
+    checkMarks.style('opacity', d => p0.completedNodeIds?.has(getStableId(d)) ? 1 : 0);
 
     setBreadcrumb([{ name: root.data.name, node: root, depth: 0 }]);
   }, [mapMode, externalTreeData]);
@@ -359,13 +351,6 @@ export default function SunburstMap({
     s.completedOverlays.style('opacity', d => !arcVisible(d.current) ? 0 : completedNodeIds?.has(getStableId(d)) ? 1 : 0);
     s.checkMarks?.style('opacity', d => !arcVisible(d.current) ? 0 : completedNodeIds?.has(getStableId(d)) ? 1 : 0);
   }, [completedNodeIds]);
-
-  // — Burning overlay sync
-  useEffect(() => {
-    const s = stateRef.current;
-    if (!s.burningOverlays) return;
-    s.burningOverlays.style('opacity', d => !arcVisible(d.current) ? 0 : burningTaskNodeIds?.has(getStableId(d)) ? 1 : 0);
-  }, [burningTaskNodeIds]);
 
   // — Selection highlight sync
   useEffect(() => {
@@ -459,7 +444,6 @@ export default function SunburstMap({
               <span className="text-[9px] text-gray-400">Lv{tooltip.depth}</span>
               {tooltip.taskCount > 0 && <span className="text-[9px] text-indigo-300">タスク {tooltip.taskCount}件</span>}
               {tooltip.isCompleted && <span className="text-[9px] text-emerald-300 font-bold">✓ 完了</span>}
-              {tooltip.isBurning && <span className="text-[9px] text-red-400 font-bold">炎上</span>}
             </div>
           </div>
         </div>
@@ -482,12 +466,8 @@ export default function SunburstMap({
       <div className="absolute top-3 right-3 md:right-4 flex flex-col gap-0.5 bg-white/90 border border-gray-200 rounded-xl px-2.5 py-2 shadow-sm z-10">
         <div className="text-[8px] font-bold tracking-widest uppercase text-gray-400 mb-0.5">状態</div>
         <div className="flex items-center gap-1.5 text-[9px] text-gray-500">
-          <div className="w-3 h-3 rounded-sm bg-white/80 border border-gray-300 flex items-center justify-center text-[7px] font-black text-emerald-600">✓</div>
+          <div className="w-3 h-3 rounded-sm bg-emerald-100 border border-emerald-400 flex items-center justify-center text-[7px] font-black text-emerald-600">✓</div>
           完了
-        </div>
-        <div className="flex items-center gap-1.5 text-[9px] text-gray-500">
-          <div className="w-3 h-3 rounded-sm bg-red-100 border border-red-300" />
-          炎上
         </div>
       </div>
 

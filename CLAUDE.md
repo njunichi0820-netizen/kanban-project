@@ -14,6 +14,7 @@ SPR（Self-Piercing Rivet）技術検証項目のインタラクティブナレ�
 3. **Label stroke colors** — 親: `stroke:rgba(250,251,253,.92)` / リーフ: `stroke:rgba(255,255,255,.85)`
 4. **SunburstMap `updateLabels(k)`** — 深度別ラベルサイズ制御。`LABEL_PX`, `LABEL_MIN_SHOW` 定数、`arcThickness * 0.4` 上限、`screenPx` 計算ロジックを一切変更しないこと
 5. **SunburstMap 中央テキストのズーム制御** — `updateLabels` 内の `centerPx` / `maxSvgFs = innerRadius * 0.35` / `centerFs` 計算を変更しないこと
+6. **SunburstMap 完了オーバーレイ** — `done-overlay`のfill `rgba(52,211,153,0.7)`, stroke `#34D399`, 二重drop-shadow glowを変更しないこと。炎上(burning)機能は削除済み、再追加しないこと
 
 ## Data hierarchy (6 levels)
 ```
