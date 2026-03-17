@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Check, Plus, X, GitBranch, GitMerge } from 'lucide-react';
 import { TRL_LEVELS, PERSPECTIVES_5ME, CONSTRAINT_CATEGORIES } from '../../constants/mapConstants';
 
-const DEPTH_COLORS = ['', '#4F6CF7', '#0EA5E9', '#F59E0B', '#6366F1', '#38BDF8', '#7DD3FC'];
+const DEPTH_COLORS = ['', '#4F6CF7', '#A855F7', '#0EA5E9', '#EC4899', '#06B6D4', '#F97316'];
 
 export default function NodeSidebar({ node, nodeState, onUpdateState, onToggleComplete, onCreateTask, onAddChild, onAddSibling, tasks = [] }) {
   const [addMode, setAddMode] = useState(null); // 'child' | 'sibling' | null
