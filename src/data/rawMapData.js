@@ -39,7 +39,7 @@ export const CATS = [
      ]},
    ]
   },
-  {id:"手直し率",title:"手直し率",icon:"📌",themeColor:"#4F6CF7",
+  {id:"手直し率",title:"手直し率",icon:"📌",themeColor:"#E11D48",
    description:"手直し率",kpi:"0.954",
    subs:[
      {id:"s_D_良品率",name:"[D:設備] 良品率",tags:["品質"],updated:"2025-06",items:[
@@ -121,7 +121,7 @@ export const CATS = [
      ]},
    ]
   },
-  {id:"直直要員",title:"直直要員",icon:"📌",themeColor:"#7DD3FC",
+  {id:"直直要員",title:"直直要員",icon:"📌",themeColor:"#F59E0B",
    description:"直直要員",kpi:"182名/2直 (244名@YO)",
    subs:[
      {id:"s_D_リペア",name:"[D:設備] リペア",tags:["品質", "工数"],updated:"2025-06",items:[
@@ -259,316 +259,316 @@ export const RAW_DATA={name:"SPR テーマ企画連鎖",children:[
       ]},
     ]},
   ]},
-  {name:"手直し率",fullName:"手直し率",color:"#4F6CF7",kpi:"0.954",children:[
-    {name:"D:設備",color:"#4F6CF7",children:[
-      {name:"良品率",color:"#4F6CF7",req:"99.994%以上",children:[
-        {name:"良品率検証",color:"#4F6CF7",perspective:"Machine：設備",children:[
-          {name:"品質",color:"#4F6CF7",children:[
-            {name:"内部品質(インタロック/リベットクラック)",color:"#4F6CF7",value:1},
-            {name:"外観品質(ヘッドハイト/裏面クラック)",color:"#4F6CF7",value:1},
-            {name:"リベット反転",color:"#4F6CF7",value:1},
+  {name:"手直し率",fullName:"手直し率",color:"#E11D48",kpi:"0.954",children:[
+    {name:"D:設備",color:"#E11D48",children:[
+      {name:"良品率",color:"#E11D48",req:"99.994%以上",children:[
+        {name:"良品率検証",color:"#E11D48",perspective:"Machine：設備",children:[
+          {name:"品質",color:"#E11D48",children:[
+            {name:"内部品質(インタロック/リベットクラック)",color:"#E11D48",value:1},
+            {name:"外観品質(ヘッドハイト/裏面クラック)",color:"#E11D48",value:1},
+            {name:"リベット反転",color:"#E11D48",value:1},
           ]},
         ]},
       ]},
     ]},
-    {name:"Q:品質",color:"#4F6CF7",children:[
-      {name:"周辺品質",color:"#4F6CF7",req:"精度変化B面±0.3以下 端部割れなきこと",children:[
-        {name:"変形影響明確化検証",color:"#4F6CF7",perspective:"Machine：設備",children:[
-          {name:"ADC製品",color:"#4F6CF7",children:[
-            {name:"伸び",color:"#4F6CF7",value:1},
-            {name:"剛性/形状",color:"#4F6CF7",value:1},
-            {name:"実ワーク 基準PIN穴影響",color:"#4F6CF7",value:1},
+    {name:"Q:品質",color:"#E11D48",children:[
+      {name:"周辺品質",color:"#E11D48",req:"精度変化B面±0.3以下 端部割れなきこと",children:[
+        {name:"変形影響明確化検証",color:"#E11D48",perspective:"Machine：設備",children:[
+          {name:"ADC製品",color:"#E11D48",children:[
+            {name:"伸び",color:"#E11D48",value:1},
+            {name:"剛性/形状",color:"#E11D48",value:1},
+            {name:"実ワーク 基準PIN穴影響",color:"#E11D48",value:1},
           ]},
-          {name:"GAP",color:"#4F6CF7",children:[
-            {name:"GAP量",color:"#4F6CF7",value:1},
+          {name:"GAP",color:"#E11D48",children:[
+            {name:"GAP量",color:"#E11D48",value:1},
           ]},
-          {name:"JIG押さえ量",color:"#4F6CF7",children:[
-            {name:"JIG押さえ量",color:"#4F6CF7",value:1},
+          {name:"JIG押さえ量",color:"#E11D48",children:[
+            {name:"JIG押さえ量",color:"#E11D48",value:1},
           ]},
-          {name:"引き込み量",color:"#4F6CF7",children:[
-            {name:"引き込み量",color:"#4F6CF7",value:1},
+          {name:"引き込み量",color:"#E11D48",children:[
+            {name:"引き込み量",color:"#E11D48",value:1},
           ]},
-          {name:"打順",color:"#4F6CF7",children:[
-            {name:"打順影響",color:"#4F6CF7",value:1},
-          ]},
-        ]},
-        {name:"端部距離明確化検証",color:"#4F6CF7",perspective:"Machine：設備",children:[
-          {name:"端部距離",color:"#4F6CF7",children:[
-            {name:"ADC品質(曲げ/伸び)",color:"#4F6CF7",value:1},
-            {name:"端部距離",color:"#4F6CF7",value:1},
+          {name:"打順",color:"#E11D48",children:[
+            {name:"打順影響",color:"#E11D48",value:1},
           ]},
         ]},
-      ]},
-      {name:"強度",color:"#4F6CF7",req:"SPEC以上満足 ※付表1 ヘッドハイト±0.2㎜以下",children:[
-        {name:"リベットクラックメカニズム検証",color:"#4F6CF7",value:1},
-        {name:"板組N増し検証",color:"#4F6CF7",perspective:"Machine：設備",children:[
-          {name:"N数",color:"#4F6CF7",children:[
-            {name:"N数",color:"#4F6CF7",value:1},
-          ]},
-        ]},
-        {name:"GAPタフネス検証",color:"#4F6CF7",perspective:"Machine：設備",children:[
-          {name:"GAP",color:"#4F6CF7",children:[
-            {name:"ダイ-板間 GAP量",color:"#4F6CF7",value:1},
-            {name:"ノーズピース-板間 GAP量",color:"#4F6CF7",value:1},
-            {name:"板間GAP量",color:"#4F6CF7",value:1},
-          ]},
-        ]},
-        {name:"RB姿勢タフネス検証",color:"#4F6CF7",perspective:"Machine：設備",children:[
-          {name:"パンチ",color:"#4F6CF7",children:[
-            {name:"移動時抵抗",color:"#4F6CF7",value:1},
-          ]},
-          {name:"リベット",color:"#4F6CF7",children:[
-            {name:"フィンガーへの収まり",color:"#4F6CF7",value:1},
-          ]},
-          {name:"加圧波形",color:"#4F6CF7",children:[
-            {name:"ノイズ影響",color:"#4F6CF7",value:1},
-          ]},
-        ]},
-        {name:"人外乱タフネス検証",color:"#4F6CF7",perspective:"Man：人",children:[
-          {name:"ダイ",color:"#4F6CF7",children:[
-            {name:"ダイ取付忘れ",color:"#4F6CF7",value:1},
-            {name:"違うダイを取り付ける",color:"#4F6CF7",value:1},
-          ]},
-          {name:"ノーズピース",color:"#4F6CF7",children:[
-            {name:"はずれ",color:"#4F6CF7",value:1},
-            {name:"ガタ",color:"#4F6CF7",value:1},
-            {name:"取付ミス(ガタなど)",color:"#4F6CF7",value:1},
-          ]},
-          {name:"パンチ",color:"#4F6CF7",children:[
-            {name:"加圧条件変更",color:"#4F6CF7",value:1},
-            {name:"取付ミス(ガタなど)",color:"#4F6CF7",value:1},
-          ]},
-          {name:"リベット",color:"#4F6CF7",children:[
-            {name:"違うリベットを入れる",color:"#4F6CF7",value:1},
-          ]},
-        ]},
-        {name:"位置バラつきタフネス検証",color:"#4F6CF7",perspective:"Machine：設備",children:[
-          {name:"位置",color:"#4F6CF7",children:[
-            {name:"ガンたわみ",color:"#4F6CF7",value:1},
-            {name:"位置",color:"#4F6CF7",value:1},
-            {name:"端部距離",color:"#4F6CF7",value:1},
-            {name:"軸ズレ",color:"#4F6CF7",value:1},
-          ]},
-          {name:"角度",color:"#4F6CF7",children:[
-            {name:"角度",color:"#4F6CF7",value:1},
-          ]},
-        ]},
-        {name:"内部品質タフネス検証",color:"#4F6CF7",perspective:"Material：材料",children:[
-          {name:"ADC",color:"#4F6CF7",children:[
-            {name:"伸び",color:"#4F6CF7",value:1},
-            {name:"外観品質",color:"#4F6CF7",value:1},
-            {name:"曲げ",color:"#4F6CF7",value:1},
-            {name:"材料成分",color:"#4F6CF7",value:1},
-            {name:"鋳巣",color:"#4F6CF7",value:1},
-          ]},
-          {name:"ダイ",color:"#4F6CF7",children:[
-            {name:"熱処理",color:"#4F6CF7",value:1},
-          ]},
-          {name:"リベット",color:"#4F6CF7",children:[
-            {name:"強度/成分",color:"#4F6CF7",value:1},
-          ]},
-        ]},
-        {name:"形状バラつき検証",color:"#4F6CF7",perspective:"Material：材料",children:[
-          {name:"ADC",color:"#4F6CF7",children:[
-            {name:"平面度",color:"#4F6CF7",value:1},
-            {name:"抜き勾配",color:"#4F6CF7",value:1},
-            {name:"板厚ばらつき",color:"#4F6CF7",value:1},
-          ]},
-          {name:"ダイ",color:"#4F6CF7",children:[
-            {name:"ダイ傷",color:"#4F6CF7",value:1},
-            {name:"ダイ割れ",color:"#4F6CF7",value:1},
-            {name:"ダイ容量",color:"#4F6CF7",value:1},
-            {name:"ダイ摩耗",color:"#4F6CF7",value:1},
-            {name:"ダイ破損",color:"#4F6CF7",value:1},
-            {name:"ダイ詰まり",color:"#4F6CF7",value:1},
-          ]},
-          {name:"ノーズピース",color:"#4F6CF7",children:[
-            {name:"ノーズピース傷",color:"#4F6CF7",value:1},
-            {name:"ノーズピース変形",color:"#4F6CF7",value:1},
-            {name:"ノーズピース摩耗",color:"#4F6CF7",value:1},
-            {name:"ノーズピース曲がり",color:"#4F6CF7",value:1},
-            {name:"ノーズピース破損",color:"#4F6CF7",value:1},
-            {name:"ノーズピース長さ",color:"#4F6CF7",value:1},
-          ]},
-          {name:"パンチ",color:"#4F6CF7",children:[
-            {name:"パンチフレ",color:"#4F6CF7",value:1},
-            {name:"パンチ傷",color:"#4F6CF7",value:1},
-            {name:"パンチ摩耗",color:"#4F6CF7",value:1},
-            {name:"パンチ破損",color:"#4F6CF7",value:1},
-          ]},
-          {name:"リベット",color:"#4F6CF7",children:[
-            {name:"リベット長さ",color:"#4F6CF7",value:1},
-            {name:"内部体積",color:"#4F6CF7",value:1},
-            {name:"寸法公差",color:"#4F6CF7",value:1},
-          ]},
-        ]},
-        {name:"異物タフネス検証",color:"#4F6CF7",perspective:"Machine：設備",children:[
-          {name:"ADC",color:"#4F6CF7",children:[
-            {name:"ゴミカミ",color:"#4F6CF7",value:1},
-          ]},
-          {name:"その他",color:"#4F6CF7",children:[
-            {name:"HPA",color:"#4F6CF7",value:1},
-            {name:"スパッタ",color:"#4F6CF7",value:1},
-            {name:"洗浄液",color:"#4F6CF7",value:1},
-            {name:"防錆油",color:"#4F6CF7",value:1},
-          ]},
-        ]},
-        {name:"表面状態タフネス検証",color:"#4F6CF7",perspective:"Material：材料",children:[
-          {name:"ADC",color:"#4F6CF7",children:[
-            {name:"表面粗さ",color:"#4F6CF7",value:1},
-            {name:"面削有無",color:"#4F6CF7",value:1},
-          ]},
-          {name:"ダイ",color:"#4F6CF7",children:[
-            {name:"メッキ",color:"#4F6CF7",value:1},
-            {name:"硬度",color:"#4F6CF7",value:1},
-            {name:"表面粗さ",color:"#4F6CF7",value:1},
-          ]},
-          {name:"ノーズピース",color:"#4F6CF7",children:[
-            {name:"表面状態",color:"#4F6CF7",value:1},
-          ]},
-          {name:"パンチ",color:"#4F6CF7",children:[
-            {name:"表面状態",color:"#4F6CF7",value:1},
-          ]},
-          {name:"リベット",color:"#4F6CF7",children:[
-            {name:"メッキ",color:"#4F6CF7",value:1},
-            {name:"硬度",color:"#4F6CF7",value:1},
-          ]},
-        ]},
-        {name:"加工条件管理幅",color:"#4F6CF7",perspective:"Machine：設備",children:[
-          {name:"ダイ条件",color:"#4F6CF7",children:[
-            {name:"形状/体積管理幅",color:"#4F6CF7",value:1},
-          ]},
-          {name:"プリクランプ加圧",color:"#4F6CF7",children:[
-            {name:"プリクランプ加圧幅",color:"#4F6CF7",value:1},
-          ]},
-          {name:"リベット条件",color:"#4F6CF7",children:[
-            {name:"形状管理幅",color:"#4F6CF7",value:1},
-          ]},
-          {name:"加圧条件",color:"#4F6CF7",children:[
-            {name:"しきい値設定",color:"#4F6CF7",value:1},
-            {name:"加圧カーブバラつき",color:"#4F6CF7",value:1},
-            {name:"加圧バラつき",color:"#4F6CF7",value:1},
-            {name:"実行値との乖離",color:"#4F6CF7",value:1},
-            {name:"波形ノイズ",color:"#4F6CF7",value:1},
-            {name:"管理幅設定",color:"#4F6CF7",value:1},
-          ]},
-          {name:"加工速度",color:"#4F6CF7",children:[
-            {name:"加工速度幅",color:"#4F6CF7",value:1},
-          ]},
-        ]},
-        {name:"受入基準検証",color:"#4F6CF7",perspective:"Material：材料",children:[
-          {name:"ダイ",color:"#4F6CF7",children:[
-            {name:"ロット差",color:"#4F6CF7",value:1},
-            {name:"寸法公差",color:"#4F6CF7",value:1},
-            {name:"製造工場違い",color:"#4F6CF7",value:1},
-          ]},
-          {name:"ノーズピース",color:"#4F6CF7",children:[
-            {name:"ロット差",color:"#4F6CF7",value:1},
-            {name:"寸法公差",color:"#4F6CF7",value:1},
-            {name:"種類違い",color:"#4F6CF7",value:1},
-            {name:"製造工場違い",color:"#4F6CF7",value:1},
-          ]},
-          {name:"パンチ",color:"#4F6CF7",children:[
-            {name:"ロット差",color:"#4F6CF7",value:1},
-            {name:"寸法公差",color:"#4F6CF7",value:1},
-            {name:"種類違い",color:"#4F6CF7",value:1},
-            {name:"製造工場違い",color:"#4F6CF7",value:1},
-          ]},
-          {name:"リベット",color:"#4F6CF7",children:[
-            {name:"供給ロット差",color:"#4F6CF7",value:1},
-            {name:"変形",color:"#4F6CF7",value:1},
-            {name:"寸法公差",color:"#4F6CF7",value:1},
-            {name:"破損",color:"#4F6CF7",value:1},
-            {name:"製造工場違い",color:"#4F6CF7",value:1},
+        {name:"端部距離明確化検証",color:"#E11D48",perspective:"Machine：設備",children:[
+          {name:"端部距離",color:"#E11D48",children:[
+            {name:"ADC品質(曲げ/伸び)",color:"#E11D48",value:1},
+            {name:"端部距離",color:"#E11D48",value:1},
           ]},
         ]},
       ]},
-      {name:"裏面品質",color:"#4F6CF7",req:"レベル4以下のこと(仮SPEC)",children:[
-        {name:"ADC反映項目明確化",color:"#4F6CF7",perspective:"Management：管理",children:[
-          {name:"材料SPEC",color:"#4F6CF7",children:[
-            {name:"上記検証のなかで推進",color:"#4F6CF7",value:1},
+      {name:"強度",color:"#E11D48",req:"SPEC以上満足 ※付表1 ヘッドハイト±0.2㎜以下",children:[
+        {name:"リベットクラックメカニズム検証",color:"#E11D48",value:1},
+        {name:"板組N増し検証",color:"#E11D48",perspective:"Machine：設備",children:[
+          {name:"N数",color:"#E11D48",children:[
+            {name:"N数",color:"#E11D48",value:1},
           ]},
         ]},
-        {name:"裏面クラックSPEC最適化",color:"#4F6CF7",perspective:"Management：管理",children:[
-          {name:"材料SPEC",color:"#4F6CF7",children:[
-            {name:"上記検証のなかで推進",color:"#4F6CF7",value:1},
+        {name:"GAPタフネス検証",color:"#E11D48",perspective:"Machine：設備",children:[
+          {name:"GAP",color:"#E11D48",children:[
+            {name:"ダイ-板間 GAP量",color:"#E11D48",value:1},
+            {name:"ノーズピース-板間 GAP量",color:"#E11D48",value:1},
+            {name:"板間GAP量",color:"#E11D48",value:1},
           ]},
         ]},
-        {name:"裏面クラックメカニズム検証",color:"#4F6CF7",perspective:"Method：方法",children:[
-          {name:"ADC",color:"#4F6CF7",children:[
-            {name:"RR ADC ERトライワーク",color:"#4F6CF7",value:1},
-            {name:"曲げ",color:"#4F6CF7",value:1},
-            {name:"表面部の伸び",color:"#4F6CF7",value:1},
+        {name:"RB姿勢タフネス検証",color:"#E11D48",perspective:"Machine：設備",children:[
+          {name:"パンチ",color:"#E11D48",children:[
+            {name:"移動時抵抗",color:"#E11D48",value:1},
+          ]},
+          {name:"リベット",color:"#E11D48",children:[
+            {name:"フィンガーへの収まり",color:"#E11D48",value:1},
+          ]},
+          {name:"加圧波形",color:"#E11D48",children:[
+            {name:"ノイズ影響",color:"#E11D48",value:1},
           ]},
         ]},
-        {name:"最適ダイ検証",color:"#4F6CF7",perspective:"Machine：設備",children:[
-          {name:"ダイ",color:"#4F6CF7",children:[
-            {name:"フラットダイ",color:"#4F6CF7",value:1},
-            {name:"リングダイ",color:"#4F6CF7",value:1},
+        {name:"人外乱タフネス検証",color:"#E11D48",perspective:"Man：人",children:[
+          {name:"ダイ",color:"#E11D48",children:[
+            {name:"ダイ取付忘れ",color:"#E11D48",value:1},
+            {name:"違うダイを取り付ける",color:"#E11D48",value:1},
+          ]},
+          {name:"ノーズピース",color:"#E11D48",children:[
+            {name:"はずれ",color:"#E11D48",value:1},
+            {name:"ガタ",color:"#E11D48",value:1},
+            {name:"取付ミス(ガタなど)",color:"#E11D48",value:1},
+          ]},
+          {name:"パンチ",color:"#E11D48",children:[
+            {name:"加圧条件変更",color:"#E11D48",value:1},
+            {name:"取付ミス(ガタなど)",color:"#E11D48",value:1},
+          ]},
+          {name:"リベット",color:"#E11D48",children:[
+            {name:"違うリベットを入れる",color:"#E11D48",value:1},
+          ]},
+        ]},
+        {name:"位置バラつきタフネス検証",color:"#E11D48",perspective:"Machine：設備",children:[
+          {name:"位置",color:"#E11D48",children:[
+            {name:"ガンたわみ",color:"#E11D48",value:1},
+            {name:"位置",color:"#E11D48",value:1},
+            {name:"端部距離",color:"#E11D48",value:1},
+            {name:"軸ズレ",color:"#E11D48",value:1},
+          ]},
+          {name:"角度",color:"#E11D48",children:[
+            {name:"角度",color:"#E11D48",value:1},
+          ]},
+        ]},
+        {name:"内部品質タフネス検証",color:"#E11D48",perspective:"Material：材料",children:[
+          {name:"ADC",color:"#E11D48",children:[
+            {name:"伸び",color:"#E11D48",value:1},
+            {name:"外観品質",color:"#E11D48",value:1},
+            {name:"曲げ",color:"#E11D48",value:1},
+            {name:"材料成分",color:"#E11D48",value:1},
+            {name:"鋳巣",color:"#E11D48",value:1},
+          ]},
+          {name:"ダイ",color:"#E11D48",children:[
+            {name:"熱処理",color:"#E11D48",value:1},
+          ]},
+          {name:"リベット",color:"#E11D48",children:[
+            {name:"強度/成分",color:"#E11D48",value:1},
+          ]},
+        ]},
+        {name:"形状バラつき検証",color:"#E11D48",perspective:"Material：材料",children:[
+          {name:"ADC",color:"#E11D48",children:[
+            {name:"平面度",color:"#E11D48",value:1},
+            {name:"抜き勾配",color:"#E11D48",value:1},
+            {name:"板厚ばらつき",color:"#E11D48",value:1},
+          ]},
+          {name:"ダイ",color:"#E11D48",children:[
+            {name:"ダイ傷",color:"#E11D48",value:1},
+            {name:"ダイ割れ",color:"#E11D48",value:1},
+            {name:"ダイ容量",color:"#E11D48",value:1},
+            {name:"ダイ摩耗",color:"#E11D48",value:1},
+            {name:"ダイ破損",color:"#E11D48",value:1},
+            {name:"ダイ詰まり",color:"#E11D48",value:1},
+          ]},
+          {name:"ノーズピース",color:"#E11D48",children:[
+            {name:"ノーズピース傷",color:"#E11D48",value:1},
+            {name:"ノーズピース変形",color:"#E11D48",value:1},
+            {name:"ノーズピース摩耗",color:"#E11D48",value:1},
+            {name:"ノーズピース曲がり",color:"#E11D48",value:1},
+            {name:"ノーズピース破損",color:"#E11D48",value:1},
+            {name:"ノーズピース長さ",color:"#E11D48",value:1},
+          ]},
+          {name:"パンチ",color:"#E11D48",children:[
+            {name:"パンチフレ",color:"#E11D48",value:1},
+            {name:"パンチ傷",color:"#E11D48",value:1},
+            {name:"パンチ摩耗",color:"#E11D48",value:1},
+            {name:"パンチ破損",color:"#E11D48",value:1},
+          ]},
+          {name:"リベット",color:"#E11D48",children:[
+            {name:"リベット長さ",color:"#E11D48",value:1},
+            {name:"内部体積",color:"#E11D48",value:1},
+            {name:"寸法公差",color:"#E11D48",value:1},
+          ]},
+        ]},
+        {name:"異物タフネス検証",color:"#E11D48",perspective:"Machine：設備",children:[
+          {name:"ADC",color:"#E11D48",children:[
+            {name:"ゴミカミ",color:"#E11D48",value:1},
+          ]},
+          {name:"その他",color:"#E11D48",children:[
+            {name:"HPA",color:"#E11D48",value:1},
+            {name:"スパッタ",color:"#E11D48",value:1},
+            {name:"洗浄液",color:"#E11D48",value:1},
+            {name:"防錆油",color:"#E11D48",value:1},
+          ]},
+        ]},
+        {name:"表面状態タフネス検証",color:"#E11D48",perspective:"Material：材料",children:[
+          {name:"ADC",color:"#E11D48",children:[
+            {name:"表面粗さ",color:"#E11D48",value:1},
+            {name:"面削有無",color:"#E11D48",value:1},
+          ]},
+          {name:"ダイ",color:"#E11D48",children:[
+            {name:"メッキ",color:"#E11D48",value:1},
+            {name:"硬度",color:"#E11D48",value:1},
+            {name:"表面粗さ",color:"#E11D48",value:1},
+          ]},
+          {name:"ノーズピース",color:"#E11D48",children:[
+            {name:"表面状態",color:"#E11D48",value:1},
+          ]},
+          {name:"パンチ",color:"#E11D48",children:[
+            {name:"表面状態",color:"#E11D48",value:1},
+          ]},
+          {name:"リベット",color:"#E11D48",children:[
+            {name:"メッキ",color:"#E11D48",value:1},
+            {name:"硬度",color:"#E11D48",value:1},
+          ]},
+        ]},
+        {name:"加工条件管理幅",color:"#E11D48",perspective:"Machine：設備",children:[
+          {name:"ダイ条件",color:"#E11D48",children:[
+            {name:"形状/体積管理幅",color:"#E11D48",value:1},
+          ]},
+          {name:"プリクランプ加圧",color:"#E11D48",children:[
+            {name:"プリクランプ加圧幅",color:"#E11D48",value:1},
+          ]},
+          {name:"リベット条件",color:"#E11D48",children:[
+            {name:"形状管理幅",color:"#E11D48",value:1},
+          ]},
+          {name:"加圧条件",color:"#E11D48",children:[
+            {name:"しきい値設定",color:"#E11D48",value:1},
+            {name:"加圧カーブバラつき",color:"#E11D48",value:1},
+            {name:"加圧バラつき",color:"#E11D48",value:1},
+            {name:"実行値との乖離",color:"#E11D48",value:1},
+            {name:"波形ノイズ",color:"#E11D48",value:1},
+            {name:"管理幅設定",color:"#E11D48",value:1},
+          ]},
+          {name:"加工速度",color:"#E11D48",children:[
+            {name:"加工速度幅",color:"#E11D48",value:1},
+          ]},
+        ]},
+        {name:"受入基準検証",color:"#E11D48",perspective:"Material：材料",children:[
+          {name:"ダイ",color:"#E11D48",children:[
+            {name:"ロット差",color:"#E11D48",value:1},
+            {name:"寸法公差",color:"#E11D48",value:1},
+            {name:"製造工場違い",color:"#E11D48",value:1},
+          ]},
+          {name:"ノーズピース",color:"#E11D48",children:[
+            {name:"ロット差",color:"#E11D48",value:1},
+            {name:"寸法公差",color:"#E11D48",value:1},
+            {name:"種類違い",color:"#E11D48",value:1},
+            {name:"製造工場違い",color:"#E11D48",value:1},
+          ]},
+          {name:"パンチ",color:"#E11D48",children:[
+            {name:"ロット差",color:"#E11D48",value:1},
+            {name:"寸法公差",color:"#E11D48",value:1},
+            {name:"種類違い",color:"#E11D48",value:1},
+            {name:"製造工場違い",color:"#E11D48",value:1},
+          ]},
+          {name:"リベット",color:"#E11D48",children:[
+            {name:"供給ロット差",color:"#E11D48",value:1},
+            {name:"変形",color:"#E11D48",value:1},
+            {name:"寸法公差",color:"#E11D48",value:1},
+            {name:"破損",color:"#E11D48",value:1},
+            {name:"製造工場違い",color:"#E11D48",value:1},
+          ]},
+        ]},
+      ]},
+      {name:"裏面品質",color:"#E11D48",req:"レベル4以下のこと(仮SPEC)",children:[
+        {name:"ADC反映項目明確化",color:"#E11D48",perspective:"Management：管理",children:[
+          {name:"材料SPEC",color:"#E11D48",children:[
+            {name:"上記検証のなかで推進",color:"#E11D48",value:1},
+          ]},
+        ]},
+        {name:"裏面クラックSPEC最適化",color:"#E11D48",perspective:"Management：管理",children:[
+          {name:"材料SPEC",color:"#E11D48",children:[
+            {name:"上記検証のなかで推進",color:"#E11D48",value:1},
+          ]},
+        ]},
+        {name:"裏面クラックメカニズム検証",color:"#E11D48",perspective:"Method：方法",children:[
+          {name:"ADC",color:"#E11D48",children:[
+            {name:"RR ADC ERトライワーク",color:"#E11D48",value:1},
+            {name:"曲げ",color:"#E11D48",value:1},
+            {name:"表面部の伸び",color:"#E11D48",value:1},
+          ]},
+        ]},
+        {name:"最適ダイ検証",color:"#E11D48",perspective:"Machine：設備",children:[
+          {name:"ダイ",color:"#E11D48",children:[
+            {name:"フラットダイ",color:"#E11D48",value:1},
+            {name:"リングダイ",color:"#E11D48",value:1},
           ]},
         ]},
       ]},
     ]},
   ]},
-  {name:"直直要員",fullName:"直直要員",color:"#06B6D4",kpi:"182名/2直 (244名@YO)",children:[
-    {name:"D:設備",color:"#06B6D4",children:[
-      {name:"リペア",color:"#06B6D4",req:"手法確立のこと",children:[
-        {name:"リペア手法品質検証",color:"#06B6D4",perspective:"Machine：設備",children:[
-          {name:"品質",color:"#06B6D4",children:[
-            {name:"GAP影響",color:"#06B6D4",value:1},
-            {name:"ロバスト性",color:"#06B6D4",value:1},
-            {name:"出張り",color:"#06B6D4",value:1},
-            {name:"変形",color:"#06B6D4",value:1},
-            {name:"強度",color:"#06B6D4",value:1},
-            {name:"耐食性",color:"#06B6D4",value:1},
+  {name:"直直要員",fullName:"直直要員",color:"#F59E0B",kpi:"182名/2直 (244名@YO)",children:[
+    {name:"D:設備",color:"#F59E0B",children:[
+      {name:"リペア",color:"#F59E0B",req:"手法確立のこと",children:[
+        {name:"リペア手法品質検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"品質",color:"#F59E0B",children:[
+            {name:"GAP影響",color:"#F59E0B",value:1},
+            {name:"ロバスト性",color:"#F59E0B",value:1},
+            {name:"出張り",color:"#F59E0B",value:1},
+            {name:"変形",color:"#F59E0B",value:1},
+            {name:"強度",color:"#F59E0B",value:1},
+            {name:"耐食性",color:"#F59E0B",value:1},
           ]},
-          {name:"工数",color:"#06B6D4",children:[
-            {name:"共通板組範囲",color:"#06B6D4",value:1},
-            {name:"加工工数",color:"#06B6D4",value:1},
-          ]},
-        ]},
-      ]},
-      {name:"検査",color:"#06B6D4",req:"G-PACV工程ランク 1.5以上",children:[
-        {name:"ヘッドハイト検査検証",color:"#06B6D4",perspective:"Machine：設備",children:[
-          {name:"人測り方バラつき",color:"#06B6D4",children:[
-            {name:"人によるバラつき",color:"#06B6D4",value:1},
-          ]},
-          {name:"材料バラつき",color:"#06B6D4",children:[
-            {name:"TP",color:"#06B6D4",value:1},
-            {name:"実機(密度低)",color:"#06B6D4",value:1},
-            {name:"抜き勾配",color:"#06B6D4",value:1},
-          ]},
-          {name:"異物バラつき",color:"#06B6D4",children:[
-            {name:"HPA",color:"#06B6D4",value:1},
-          ]},
-        ]},
-        {name:"リベット検知機能検証",color:"#06B6D4",perspective:"Machine：設備",children:[
-          {name:"設備システム",color:"#06B6D4",children:[
-            {name:"パッケージチェック",color:"#06B6D4",value:1},
-            {name:"フィーダー部",color:"#06B6D4",value:1},
-            {name:"ホース部センサ",color:"#06B6D4",value:1},
-          ]},
-        ]},
-        {name:"加圧カーブ機能検証",color:"#06B6D4",perspective:"Machine：設備",children:[
-          {name:"各エラー",color:"#06B6D4",children:[
-            {name:"ヘッドハイト管理",color:"#06B6D4",value:1},
-            {name:"リベットなし",color:"#06B6D4",value:1},
-            {name:"反転",color:"#06B6D4",value:1},
-            {name:"板厚変化",color:"#06B6D4",value:1},
-            {name:"軸ズレ",color:"#06B6D4",value:1},
-          ]},
-        ]},
-        {name:"裏面クラック検査検証",color:"#06B6D4",perspective:"Machine：設備",children:[
-          {name:"貫通クラック",color:"#06B6D4",children:[
-            {name:"部位(円周クラック検知)",color:"#06B6D4",value:1},
+          {name:"工数",color:"#F59E0B",children:[
+            {name:"共通板組範囲",color:"#F59E0B",value:1},
+            {name:"加工工数",color:"#F59E0B",value:1},
           ]},
         ]},
       ]},
-      {name:"量産管理手法",color:"#06B6D4",req:"手法確立のこと",children:[
-        {name:"量産管理手法構築検証",color:"#06B6D4",perspective:"Machine：設備",children:[
-          {name:"設備条件",color:"#06B6D4",children:[
-            {name:"ストローク",color:"#06B6D4",value:1},
-            {name:"加圧",color:"#06B6D4",value:1},
+      {name:"検査",color:"#F59E0B",req:"G-PACV工程ランク 1.5以上",children:[
+        {name:"ヘッドハイト検査検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"人測り方バラつき",color:"#F59E0B",children:[
+            {name:"人によるバラつき",color:"#F59E0B",value:1},
+          ]},
+          {name:"材料バラつき",color:"#F59E0B",children:[
+            {name:"TP",color:"#F59E0B",value:1},
+            {name:"実機(密度低)",color:"#F59E0B",value:1},
+            {name:"抜き勾配",color:"#F59E0B",value:1},
+          ]},
+          {name:"異物バラつき",color:"#F59E0B",children:[
+            {name:"HPA",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"リベット検知機能検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"設備システム",color:"#F59E0B",children:[
+            {name:"パッケージチェック",color:"#F59E0B",value:1},
+            {name:"フィーダー部",color:"#F59E0B",value:1},
+            {name:"ホース部センサ",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"加圧カーブ機能検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"各エラー",color:"#F59E0B",children:[
+            {name:"ヘッドハイト管理",color:"#F59E0B",value:1},
+            {name:"リベットなし",color:"#F59E0B",value:1},
+            {name:"反転",color:"#F59E0B",value:1},
+            {name:"板厚変化",color:"#F59E0B",value:1},
+            {name:"軸ズレ",color:"#F59E0B",value:1},
+          ]},
+        ]},
+        {name:"裏面クラック検査検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"貫通クラック",color:"#F59E0B",children:[
+            {name:"部位(円周クラック検知)",color:"#F59E0B",value:1},
+          ]},
+        ]},
+      ]},
+      {name:"量産管理手法",color:"#F59E0B",req:"手法確立のこと",children:[
+        {name:"量産管理手法構築検証",color:"#F59E0B",perspective:"Machine：設備",children:[
+          {name:"設備条件",color:"#F59E0B",children:[
+            {name:"ストローク",color:"#F59E0B",value:1},
+            {name:"加圧",color:"#F59E0B",value:1},
           ]},
         ]},
       ]},
