@@ -121,7 +121,7 @@ export const CATS = [
      ]},
    ]
   },
-  {id:"直直要員",title:"直直要員",icon:"📌",themeColor:"#F59E0B",
+  {id:"直直要員",title:"直直要員",icon:"📌",themeColor:"#8B5CF6",
    description:"直直要員",kpi:"182名/2直 (244名@YO)",
    subs:[
      {id:"s_D_リペア",name:"[D:設備] リペア",tags:["品質", "工数"],updated:"2025-06",items:[
@@ -510,65 +510,65 @@ export const RAW_DATA={name:"SPR テーマ企画連鎖",children:[
       ]},
     ]},
   ]},
-  {name:"直直要員",fullName:"直直要員",color:"#F59E0B",kpi:"182名/2直 (244名@YO)",children:[
-    {name:"D:設備",color:"#F59E0B",children:[
-      {name:"リペア",color:"#F59E0B",req:"手法確立のこと",children:[
-        {name:"リペア手法品質検証",color:"#F59E0B",perspective:"Machine：設備",children:[
-          {name:"品質",color:"#F59E0B",children:[
-            {name:"GAP影響",color:"#F59E0B",value:1},
-            {name:"ロバスト性",color:"#F59E0B",value:1},
-            {name:"出張り",color:"#F59E0B",value:1},
-            {name:"変形",color:"#F59E0B",value:1},
-            {name:"強度",color:"#F59E0B",value:1},
-            {name:"耐食性",color:"#F59E0B",value:1},
+  {name:"直直要員",fullName:"直直要員",color:"#8B5CF6",kpi:"182名/2直 (244名@YO)",children:[
+    {name:"D:設備",color:"#8B5CF6",children:[
+      {name:"リペア",color:"#8B5CF6",req:"手法確立のこと",children:[
+        {name:"リペア手法品質検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"品質",color:"#8B5CF6",children:[
+            {name:"GAP影響",color:"#8B5CF6",value:1},
+            {name:"ロバスト性",color:"#8B5CF6",value:1},
+            {name:"出張り",color:"#8B5CF6",value:1},
+            {name:"変形",color:"#8B5CF6",value:1},
+            {name:"強度",color:"#8B5CF6",value:1},
+            {name:"耐食性",color:"#8B5CF6",value:1},
           ]},
-          {name:"工数",color:"#F59E0B",children:[
-            {name:"共通板組範囲",color:"#F59E0B",value:1},
-            {name:"加工工数",color:"#F59E0B",value:1},
-          ]},
-        ]},
-      ]},
-      {name:"検査",color:"#F59E0B",req:"G-PACV工程ランク 1.5以上",children:[
-        {name:"ヘッドハイト検査検証",color:"#F59E0B",perspective:"Machine：設備",children:[
-          {name:"人測り方バラつき",color:"#F59E0B",children:[
-            {name:"人によるバラつき",color:"#F59E0B",value:1},
-          ]},
-          {name:"材料バラつき",color:"#F59E0B",children:[
-            {name:"TP",color:"#F59E0B",value:1},
-            {name:"実機(密度低)",color:"#F59E0B",value:1},
-            {name:"抜き勾配",color:"#F59E0B",value:1},
-          ]},
-          {name:"異物バラつき",color:"#F59E0B",children:[
-            {name:"HPA",color:"#F59E0B",value:1},
-          ]},
-        ]},
-        {name:"リベット検知機能検証",color:"#F59E0B",perspective:"Machine：設備",children:[
-          {name:"設備システム",color:"#F59E0B",children:[
-            {name:"パッケージチェック",color:"#F59E0B",value:1},
-            {name:"フィーダー部",color:"#F59E0B",value:1},
-            {name:"ホース部センサ",color:"#F59E0B",value:1},
-          ]},
-        ]},
-        {name:"加圧カーブ機能検証",color:"#F59E0B",perspective:"Machine：設備",children:[
-          {name:"各エラー",color:"#F59E0B",children:[
-            {name:"ヘッドハイト管理",color:"#F59E0B",value:1},
-            {name:"リベットなし",color:"#F59E0B",value:1},
-            {name:"反転",color:"#F59E0B",value:1},
-            {name:"板厚変化",color:"#F59E0B",value:1},
-            {name:"軸ズレ",color:"#F59E0B",value:1},
-          ]},
-        ]},
-        {name:"裏面クラック検査検証",color:"#F59E0B",perspective:"Machine：設備",children:[
-          {name:"貫通クラック",color:"#F59E0B",children:[
-            {name:"部位(円周クラック検知)",color:"#F59E0B",value:1},
+          {name:"工数",color:"#8B5CF6",children:[
+            {name:"共通板組範囲",color:"#8B5CF6",value:1},
+            {name:"加工工数",color:"#8B5CF6",value:1},
           ]},
         ]},
       ]},
-      {name:"量産管理手法",color:"#F59E0B",req:"手法確立のこと",children:[
-        {name:"量産管理手法構築検証",color:"#F59E0B",perspective:"Machine：設備",children:[
-          {name:"設備条件",color:"#F59E0B",children:[
-            {name:"ストローク",color:"#F59E0B",value:1},
-            {name:"加圧",color:"#F59E0B",value:1},
+      {name:"検査",color:"#8B5CF6",req:"G-PACV工程ランク 1.5以上",children:[
+        {name:"ヘッドハイト検査検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"人測り方バラつき",color:"#8B5CF6",children:[
+            {name:"人によるバラつき",color:"#8B5CF6",value:1},
+          ]},
+          {name:"材料バラつき",color:"#8B5CF6",children:[
+            {name:"TP",color:"#8B5CF6",value:1},
+            {name:"実機(密度低)",color:"#8B5CF6",value:1},
+            {name:"抜き勾配",color:"#8B5CF6",value:1},
+          ]},
+          {name:"異物バラつき",color:"#8B5CF6",children:[
+            {name:"HPA",color:"#8B5CF6",value:1},
+          ]},
+        ]},
+        {name:"リベット検知機能検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"設備システム",color:"#8B5CF6",children:[
+            {name:"パッケージチェック",color:"#8B5CF6",value:1},
+            {name:"フィーダー部",color:"#8B5CF6",value:1},
+            {name:"ホース部センサ",color:"#8B5CF6",value:1},
+          ]},
+        ]},
+        {name:"加圧カーブ機能検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"各エラー",color:"#8B5CF6",children:[
+            {name:"ヘッドハイト管理",color:"#8B5CF6",value:1},
+            {name:"リベットなし",color:"#8B5CF6",value:1},
+            {name:"反転",color:"#8B5CF6",value:1},
+            {name:"板厚変化",color:"#8B5CF6",value:1},
+            {name:"軸ズレ",color:"#8B5CF6",value:1},
+          ]},
+        ]},
+        {name:"裏面クラック検査検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"貫通クラック",color:"#8B5CF6",children:[
+            {name:"部位(円周クラック検知)",color:"#8B5CF6",value:1},
+          ]},
+        ]},
+      ]},
+      {name:"量産管理手法",color:"#8B5CF6",req:"手法確立のこと",children:[
+        {name:"量産管理手法構築検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"設備条件",color:"#8B5CF6",children:[
+            {name:"ストローク",color:"#8B5CF6",value:1},
+            {name:"加圧",color:"#8B5CF6",value:1},
           ]},
         ]},
       ]},
@@ -584,12 +584,12 @@ export const RAW_DATA={name:"SPR テーマ企画連鎖",children:[
       {name:"スペース要員",color:"#EAB308",req:"与件スペース以下",value:1},
     ]},
   ]},
-  {name:"エネルギーミニマムな車体構造とプロセスを構築し、エ...",fullName:"エネルギーミニマムな車体構造とプロセスを構築し、エンドユーザーに魅力ある商品を適正な価格でタイムリーに提供すること",color:"#EF4444",kpi:"生産総エネルギーの費用対効果を高める車体構造と生産プロセスを構築すること (新機種エネルギ▲30%)",children:[
-    {name:"M:管理",color:"#EF4444",children:[
-      {name:"標準化",color:"#EF4444",req:"GLOBAL標準仕様確立",children:[
-        {name:"板組範囲明確化検証",color:"#EF4444",perspective:"Machine：設備",children:[
-          {name:"板組素材",color:"#EF4444",children:[
-            {name:"板組範囲",color:"#EF4444",value:1},
+  {name:"エネルギーミニマムな車体構造とプロセスを構築し、エ...",fullName:"エネルギーミニマムな車体構造とプロセスを構築し、エンドユーザーに魅力ある商品を適正な価格でタイムリーに提供すること",color:"#06B6D4",kpi:"生産総エネルギーの費用対効果を高める車体構造と生産プロセスを構築すること (新機種エネルギ▲30%)",children:[
+    {name:"M:管理",color:"#06B6D4",children:[
+      {name:"標準化",color:"#06B6D4",req:"GLOBAL標準仕様確立",children:[
+        {name:"板組範囲明確化検証",color:"#06B6D4",perspective:"Machine：設備",children:[
+          {name:"板組素材",color:"#06B6D4",children:[
+            {name:"板組範囲",color:"#06B6D4",value:1},
           ]},
         ]},
       ]},
