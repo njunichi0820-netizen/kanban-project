@@ -11,7 +11,7 @@ const lin = (k, k0, k1, v0, v1) => v0 + (v1 - v0) * clamp((k - k0) / (k1 - k0), 
 
 // QCDE色定義 — サンバースト/サークルマップ共通
 export const QCDE_COLORS = {
-  "Q:品質": "#E11D48",
+  "Q:品質": "#F59E0B",
   "C:コスト": "#A855F7",
   "D:設備": "#0EA5E9",
   "M:管理": "#F97316",
