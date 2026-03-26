@@ -883,7 +883,7 @@ const RAW_DATA={name:"SPR テーマ企画連鎖",children:[
     ]},
   ]},
   {name:"WE工場生産台数",fullName:"WE工場生産台数",color:"#10B981",kpi:"1000UPD",children:[
-    {name:"D:設備",color:"#10B981",children:[
+    {name:"D:設備",color:"#8B5CF6",children:[
       {name:"サイクルタイム",color:"#10B981",req:"4.9s 3.0s以下 (チャレンジ項目)",children:[
         {name:"サイクルタイム検証",color:"#10B981",perspective:"Machine：設備",children:[
           {name:"設備システム",color:"#10B981",children:[
@@ -896,7 +896,7 @@ const RAW_DATA={name:"SPR テーマ企画連鎖",children:[
     ]},
   ]},
   {name:"可動率(ISO準拠)",fullName:"可動率(ISO準拠)",color:"#EC4899",kpi:"0.973",children:[
-    {name:"D:設備",color:"#EC4899",children:[
+    {name:"D:設備",color:"#8B5CF6",children:[
       {name:"耐久性",color:"#EC4899",req:"1回/1月以上",children:[
         {name:"瞬停時ツール影響検証",color:"#EC4899",perspective:"Machine：設備",children:[
           {name:"瞬停影響",color:"#EC4899",children:[
@@ -944,7 +944,7 @@ const RAW_DATA={name:"SPR テーマ企画連鎖",children:[
     ]},
   ]},
   {name:"手直し率",fullName:"手直し率",color:"#F59E0B",kpi:"0.954",children:[
-    {name:"D:設備",color:"#F59E0B",children:[
+    {name:"D:設備",color:"#8B5CF6",children:[
       {name:"良品率",color:"#F59E0B",req:"99.994%以上",children:[
         {name:"良品率検証",color:"#F59E0B",perspective:"Machine：設備",children:[
           {name:"品質",color:"#F59E0B",children:[
@@ -1302,7 +1302,7 @@ function getMapData(mode){
   if(mode==='full') return RAW_DATA;
   // Skip Lv1: group by QCDE classification (A column)
   // Merge all items with same A value across different B parents into one circle
-  const qcdeColors={"Q:品質":"#4F6CF7","C:コスト":"#14B8A6","D:設備":"#10B981","M:管理":"#F59E0B"};
+  const qcdeColors={"Q:品質":"#4F6CF7","C:コスト":"#14B8A6","D:設備":"#8B5CF6","M:管理":"#F59E0B"};
   const groups={};
   RAW_DATA.children.forEach(lv1=>{
     const parentShort=lv1.name;
