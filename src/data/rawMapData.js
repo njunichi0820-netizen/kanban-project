@@ -198,75 +198,75 @@ export const RAW_DATA={name:"SPR テーマ企画連鎖",children:[
       {name:"投資",color:"#A855F7",req:"総投資ボルト以下",value:1},
     ]},
   ]},
-  {name:"WE工場生産台数",fullName:"WE工場生産台数",color:"#0EA5E9",kpi:"1000UPD",children:[
-    {name:"D:設備",color:"#0EA5E9",children:[
-      {name:"サイクルタイム",color:"#0EA5E9",req:"4.9s 3.0s以下 (チャレンジ項目)",children:[
-        {name:"サイクルタイム検証",color:"#0EA5E9",perspective:"Machine：設備",children:[
-          {name:"設備システム",color:"#0EA5E9",children:[
-            {name:"エアー流量",color:"#0EA5E9",value:1},
-            {name:"ホース長さ",color:"#0EA5E9",value:1},
-            {name:"マガジン",color:"#0EA5E9",value:1},
+  {name:"WE工場生産台数",fullName:"WE工場生産台数",color:"#8B5CF6",kpi:"1000UPD",children:[
+    {name:"D:設備",color:"#8B5CF6",children:[
+      {name:"サイクルタイム",color:"#8B5CF6",req:"4.9s 3.0s以下 (チャレンジ項目)",children:[
+        {name:"サイクルタイム検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"設備システム",color:"#8B5CF6",children:[
+            {name:"エアー流量",color:"#8B5CF6",value:1},
+            {name:"ホース長さ",color:"#8B5CF6",value:1},
+            {name:"マガジン",color:"#8B5CF6",value:1},
           ]},
         ]},
       ]},
     ]},
   ]},
-  {name:"可動率(ISO準拠)",fullName:"可動率(ISO準拠)",color:"#EC4899",kpi:"0.973",children:[
-    {name:"D:設備",color:"#EC4899",children:[
-      {name:"耐久性",color:"#EC4899",req:"1回/1月以上",children:[
-        {name:"瞬停時ツール影響検証",color:"#EC4899",perspective:"Machine：設備",children:[
-          {name:"瞬停影響",color:"#EC4899",children:[
-            {name:"瞬停影響",color:"#EC4899",value:1},
+  {name:"可動率(ISO準拠)",fullName:"可動率(ISO準拠)",color:"#8B5CF6",kpi:"0.973",children:[
+    {name:"D:設備",color:"#8B5CF6",children:[
+      {name:"耐久性",color:"#8B5CF6",req:"1回/1月以上",children:[
+        {name:"瞬停時ツール影響検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"瞬停影響",color:"#8B5CF6",children:[
+            {name:"瞬停影響",color:"#8B5CF6",value:1},
           ]},
         ]},
-        {name:"耐久試験",color:"#EC4899",perspective:"Machine：設備",children:[
-          {name:"連打数",color:"#EC4899",children:[
-            {name:"連打N数",color:"#EC4899",value:1},
+        {name:"耐久試験",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"連打数",color:"#8B5CF6",children:[
+            {name:"連打N数",color:"#8B5CF6",value:1},
           ]},
         ]},
       ]},
-      {name:"要素信頼性",color:"#EC4899",req:"99.96%以上",children:[
-        {name:"信頼性検証",color:"#EC4899",perspective:"Machine：設備",children:[
-          {name:"連打数",color:"#EC4899",children:[
-            {name:"連打N数",color:"#EC4899",value:1},
+      {name:"要素信頼性",color:"#8B5CF6",req:"99.96%以上",children:[
+        {name:"信頼性検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"連打数",color:"#8B5CF6",children:[
+            {name:"連打N数",color:"#8B5CF6",value:1},
           ]},
         ]},
-        {name:"最適艤装検証",color:"#EC4899",perspective:"Machine：設備",children:[
-          {name:"艤装",color:"#EC4899",children:[
-            {name:"供給/加工時姿勢",color:"#EC4899",value:1},
+        {name:"最適艤装検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"艤装",color:"#8B5CF6",children:[
+            {name:"供給/加工時姿勢",color:"#8B5CF6",value:1},
           ]},
         ]},
-        {name:"エラー表示機能構築検証",color:"#EC4899",perspective:"Machine：設備",children:[
-          {name:"エラー表示",color:"#EC4899",children:[
-            {name:"エラー表示",color:"#EC4899",value:1},
+        {name:"エラー表示機能構築検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"エラー表示",color:"#8B5CF6",children:[
+            {name:"エラー表示",color:"#8B5CF6",value:1},
           ]},
         ]},
-        {name:"再加工手法構築検証",color:"#EC4899",perspective:"Machine：設備",children:[
-          {name:"再加工方案",color:"#EC4899",children:[
-            {name:"再加工方案",color:"#EC4899",value:1},
+        {name:"再加工手法構築検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"再加工方案",color:"#8B5CF6",children:[
+            {name:"再加工方案",color:"#8B5CF6",value:1},
           ]},
         ]},
-        {name:"復旧方法/時間検証",color:"#EC4899",perspective:"Machine：設備",children:[
-          {name:"復旧方法",color:"#EC4899",children:[
-            {name:"復旧方法",color:"#EC4899",value:1},
+        {name:"復旧方法/時間検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"復旧方法",color:"#8B5CF6",children:[
+            {name:"復旧方法",color:"#8B5CF6",value:1},
           ]},
         ]},
-        {name:"負荷大時通信影響検証",color:"#EC4899",perspective:"Machine：設備",children:[
-          {name:"負荷大影響",color:"#EC4899",children:[
-            {name:"負荷大影響",color:"#EC4899",value:1},
+        {name:"負荷大時通信影響検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"負荷大影響",color:"#8B5CF6",children:[
+            {name:"負荷大影響",color:"#8B5CF6",value:1},
           ]},
         ]},
       ]},
     ]},
   ]},
   {name:"手直し率",fullName:"手直し率",color:"#F59E0B",kpi:"0.954",children:[
-    {name:"D:設備",color:"#F59E0B",children:[
-      {name:"良品率",color:"#F59E0B",req:"99.994%以上",children:[
-        {name:"良品率検証",color:"#F59E0B",perspective:"Machine：設備",children:[
-          {name:"品質",color:"#F59E0B",children:[
-            {name:"内部品質(インタロック/リベットクラック)",color:"#F59E0B",value:1},
-            {name:"外観品質(ヘッドハイト/裏面クラック)",color:"#F59E0B",value:1},
-            {name:"リベット反転",color:"#F59E0B",value:1},
+    {name:"D:設備",color:"#8B5CF6",children:[
+      {name:"良品率",color:"#8B5CF6",req:"99.994%以上",children:[
+        {name:"良品率検証",color:"#8B5CF6",perspective:"Machine：設備",children:[
+          {name:"品質",color:"#8B5CF6",children:[
+            {name:"内部品質(インタロック/リベットクラック)",color:"#8B5CF6",value:1},
+            {name:"外観品質(ヘッドハイト/裏面クラック)",color:"#8B5CF6",value:1},
+            {name:"リベット反転",color:"#8B5CF6",value:1},
           ]},
         ]},
       ]},
